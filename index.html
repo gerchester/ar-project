@@ -77,12 +77,12 @@
             <a-assets>
                 <a-asset-item id="myModel" src="./modelV2.glb"></a-asset-item>
               </a-assets>
-<a-light type="ambient" color="#FFF" intensity="1"></a-light>
+<a-light type="ambient" color="#FFF" intensity="10"></a-light>
             
             <!-- 2. Directional Light - simulates sunlight (main light source) -->
             <a-light type="directional" 
                      color="#FFF" 
-                     intensity="1.5"
+                     intensity="10"
                      position="2 5 3"
                      target="#target">
             </a-light>
@@ -98,7 +98,7 @@
             <!-- 4. Rim Light - highlights edges from behind -->
             <a-light type="directional" 
                      color="#88C0D0" 
-                     intensity="0.8"
+                     intensity="10"
                      position="0 3 -4"
                      target="#target">
             </a-light>
@@ -178,5 +178,6 @@
 </body>
 
 </html>
+
 
 
