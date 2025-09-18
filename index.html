@@ -3,246 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebAR Multiple Marker Tracking</title>
+    <title>WebAR Marker Tracking</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            background: #000;
-            overflow: hidden;
-            width: 100vw;
-            height: 100vh;
-            font-family: Arial, sans-serif;
-        }
-        
-        #ar-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-        
+        body { margin: 0; background: #000; overflow: hidden; }
+        #ar-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
         .status {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #fff;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            z-index: 100;
-            pointer-events: none;
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            color: #fff; background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 20px;
+            font-family: Arial, sans-serif; font-size: 14px; z-index: 100;
         }
-        
         .loading {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            z-index: 15;
-            text-align: center;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 20px;
-            border-radius: 10px;
-        }
-        
-        #startButton {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            padding: 15px 30px;
-            background: rgba(0, 209, 255, 0.8);
-            color: white;
-            border: none;
-            border-radius: 30px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            z-index: 20;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-        }
-        
-        #startButton:hover {
-            background: rgba(0, 230, 255, 1);
-            transform: translate(-50%, -50%) scale(1.05);
-        }
-        
-        .marker-info {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #fff;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 12px;
-            z-index: 100;
-            text-align: center;
-            max-width: 80%;
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: white; z-index: 15; text-align: center; font-family: Arial, sans-serif;
+            font-size: 16px; background: rgba(0,0,0,0.7); padding: 20px; border-radius: 10px;
         }
     </style>
 </head>
 <body>
-    <div id="ar-container">
-        <a-scene 
-            id="scene" 
-            mindar-image="imageTargetSrc: ./targets.mind; 
-                         uiLoading: no; 
-                         uiScanning: no; 
-                         uiError: no; 
-                         autoStart: false;"
-            color-space="sRGB" 
-            renderer="colorManagement: true; physicallyCorrectLights: true"
-            vr-mode-ui="enabled: false"
-            device-orientation-permission-ui="enabled: false"
-            embedded>
-            
-            <a-assets>
-                <a-asset-item id="model1" src="./model1.glb?v=1"></a-asset-item>
-                <a-asset-item id="model2" src="./model2.glb?v=1"></a-asset-item>
-                <a-asset-item id="model3" src="./model3.glb?v=1"></a-asset-item>
-            </a-assets>
+<div id="ar-container">
+    <a-scene
+        id="scene"
+        mindar-image="imageTargetSrc: ./targets.mind;
+                      uiLoading: no;
+                      uiScanning: no;
+                      uiError: no;
+                      autoStart: false;"
+        color-space="sRGB"
+        renderer="colorManagement: true; physicallyCorrectLights: true"
+        vr-mode-ui="enabled: false"
+        device-orientation-permission-ui="enabled: false"
+        embedded>
+        
+        <a-assets id="assets"></a-assets>
 
-            <!-- Lighting Setup -->
-            <a-light type="ambient" color="#FFF" intensity="5"></a-light>
-            <a-light type="directional" color="#FFF" intensity="3" position="2 5 3"></a-light>
-            <a-light type="directional" color="#fff" intensity="2" position="-3 2 -2"></a-light>
-            <a-light type="directional" color="#fff" intensity="2" position="0 3 -4"></a-light>
+        <!-- Свет -->
+        <a-light type="ambient" color="#FFF" intensity="5"></a-light>
+        <a-light type="directional" color="#FFF" intensity="3" position="2 5 3"></a-light>
 
-            <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+    </a-scene>
+</div>
 
-            <!-- Marker 0 - First Model -->
-            <a-entity mindar-image-target="targetIndex: 0">
-                <a-gltf-model src="#model1"
-                              position="0 0 0"
-                              scale="0.5 0.5 0.5"
-                              rotation="0 0 0"
-                              animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
-                </a-gltf-model>
-            </a-entity>
+<div class="status" id="status">Point camera at marker</div>
+<div class="loading" id="loading">Loading AR...</div>
 
-            <!-- Marker 1 - Second Model -->
-            <a-entity mindar-image-target="targetIndex: 1">
-                <a-gltf-model src="#model2"
-                              position="0 0 0"
-                              scale="0.5 0.5 0.5"
-                              rotation="0 0 0"
-                              animation="property: rotation; to: 360 0 0; loop: true; dur: 8000">
-                </a-gltf-model>
-            </a-entity>
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+    const status = document.getElementById('status');
+    const loading = document.getElementById('loading');
+    const sceneEl = document.querySelector('a-scene');
 
-            <!-- Marker 2 - Third Model -->
-            <a-entity mindar-image-target="targetIndex: 2">
-                <a-gltf-model src="#model3"
-                              position="0 0 0"
-                              scale="0.5 0.5 0.5"
-                              rotation="0 0 0"
-                              animation="property: position; to: 0 0.5 0; dir: alternate; loop: true; dur: 2000">
-                </a-gltf-model>
-            </a-entity>
-        </a-scene>
-    </div>
-    
-    <button id="startButton">Start AR</button>
-    <div class="status" id="status">Click Start AR to begin</div>
-    <div class="loading" id="loading" style="display: none;">Loading AR...</div>
-    <div class="marker-info" id="markerInfo">Detected marker: None</div>
+    // Загружаем JSON со связкой маркер → модель
+    const response = await fetch('./mapping.json');
+    const mapping = await response.json();
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const startButton = document.getElementById('startButton');
-            const status = document.getElementById('status');
-            const loading = document.getElementById('loading');
-            const markerInfo = document.getElementById('markerInfo');
-            const sceneEl = document.querySelector('a-scene');
-            
-            // Add event listeners to the scene
-            sceneEl.addEventListener('arReady', function() {
-                status.textContent = 'Point camera at any marker';
-                loading.style.display = 'none';
-            });
-            
-            sceneEl.addEventListener('arError', function(evt) {
-                console.error('AR Error:', evt.detail);
-                status.textContent = 'AR failed to load: ' + (evt.detail || 'Unknown error');
-                loading.style.display = 'none';
-                startButton.style.display = 'block';
-            });
-            
-            // Start AR when button is clicked
-            startButton.addEventListener('click', function() {
-                startButton.style.display = 'none';
-                loading.style.display = 'block';
-                status.textContent = 'Starting AR...';
-                
-                // Get the AR system and start it
-                const arSystem = sceneEl.systems["mindar-image-system"];
-                if (arSystem) {
-                    arSystem.start().then(() => {
-                        console.log('AR system started successfully');
-                    }).catch(error => {
-                        console.error('Failed to start AR system:', error);
-                        status.textContent = 'Failed to start AR: ' + error.message;
-                        loading.style.display = 'none';
-                        startButton.style.display = 'block';
-                    });
-                } else {
-                    console.error('AR system not found');
-                    status.textContent = 'AR system not available';
-                    loading.style.display = 'none';
-                    startButton.style.display = 'block';
-                }
-            });
-            
-            // Handle marker detection for all markers
-            const markers = document.querySelectorAll('[mindar-image-target]');
-            
-            markers.forEach((marker, index) => {
-                marker.addEventListener('targetFound', function() {
-                    status.textContent = 'Marker ' + index + ' detected';
-                    markerInfo.textContent = 'Detected marker: ' + index;
-                });
-                
-                marker.addEventListener('targetLost', function() {
-                    status.textContent = 'Point camera at any marker';
-                    markerInfo.textContent = 'Detected marker: None';
-                });
-            });
-            
-            // Handle window resize
-            window.addEventListener('resize', function() {
-                if (sceneEl.renderer) {
-                    sceneEl.renderer.setSize(window.innerWidth, window.innerHeight);
-                }
-            });
-        });
-    </script>
+    // Загружаем модели в <a-assets>
+    const assets = document.getElementById('assets');
+    Object.entries(mapping).forEach(([index, modelPath]) => {
+        const asset = document.createElement('a-asset-item');
+        asset.setAttribute('id', `model-${index}`);
+        asset.setAttribute('src', modelPath);
+        assets.appendChild(asset);
+    });
+
+    // Создаём сущности для каждого маркера
+    Object.keys(mapping).forEach(index => {
+        const entity = document.createElement('a-entity');
+        entity.setAttribute('mindar-image-target', `targetIndex: ${index}`);
+
+        const model = document.createElement('a-gltf-model');
+        model.setAttribute('src', `#model-${index}`);
+        model.setAttribute('position', '0 0 0');
+        model.setAttribute('scale', '0.5 0.5 0.5');
+
+        entity.appendChild(model);
+        sceneEl.appendChild(entity);
+
+        // Статус "нашёл/потерял"
+        entity.addEventListener('targetFound', () => { status.textContent = Marker ${index} detected; });
+        entity.addEventListener('targetLost', () => { status.textContent = Point camera at marker; });
+    });
+
+    // Автозапуск AR
+    setTimeout(() => {
+        const arSystem = sceneEl.systems["mindar-image-system"];
+        arSystem.start();
+        loading.style.display = 'none';
+    }, 500);
+});
+</script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
 
 
 
