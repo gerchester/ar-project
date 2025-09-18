@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebAR Marker Tracking</title>
+    <title>WebAR Multiple Marker Tracking</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <style>
@@ -18,6 +18,7 @@
             overflow: hidden;
             width: 100vw;
             height: 100vh;
+            font-family: Arial, sans-serif;
         }
         
         #ar-container {
@@ -37,7 +38,6 @@
             background: rgba(0, 0, 0, 0.6);
             padding: 10px 20px;
             border-radius: 20px;
-            font-family: Arial, sans-serif;
             font-size: 14px;
             z-index: 100;
             pointer-events: none;
@@ -51,11 +51,47 @@
             color: white;
             z-index: 15;
             text-align: center;
-            font-family: Arial, sans-serif;
-            font-size: 16px;
             background: rgba(0, 0, 0, 0.7);
             padding: 20px;
             border-radius: 10px;
+        }
+        
+        #startButton {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 15px 30px;
+            background: rgba(0, 209, 255, 0.8);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 20;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        #startButton:hover {
+            background: rgba(0, 230, 255, 1);
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+        
+        .marker-info {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 100;
+            text-align: center;
+            max-width: 80%;
         }
     </style>
 </head>
@@ -63,7 +99,7 @@
     <div id="ar-container">
         <a-scene 
             id="scene" 
-            mindar-image="imageTargetSrc: ./targets(2).mind; 
+            mindar-image="imageTargetSrc: ./targets.mind; 
                          uiLoading: no; 
                          uiScanning: no; 
                          uiError: no; 
@@ -78,35 +114,17 @@
                 <a-asset-item id="model1" src="./model1.glb?v=1"></a-asset-item>
                 <a-asset-item id="model2" src="./model2.glb?v=1"></a-asset-item>
                 <a-asset-item id="model3" src="./model3.glb?v=1"></a-asset-item>
-              </a-assets>
-<a-light type="ambient" color="#FFF" intensity="5"></a-light>
-            
-            <!-- 2. Directional Light - simulates sunlight (main light source) -->
-            <a-light type="directional" 
-                     color="#FFF" 
-                     intensity="3"
-                     position="2 5 3"
-                     target="#target">
-            </a-light>
-            
-            <!-- 3. Fill Light - soft light from the opposite side to reduce shadows -->
-            <a-light type="directional" 
-                     color="#fff" 
-                     intensity="2"
-                     position="-3 2 -2"
-                     target="#target">
-            </a-light>
-            
-            <!-- 4. Rim Light - highlights edges from behind -->
-            <a-light type="directional" 
-                     color="#fff" 
-                     intensity="2"
-                     position="0 3 -4"
-                     target="#target">
-            </a-light>
+            </a-assets>
+
+            <!-- Lighting Setup -->
+            <a-light type="ambient" color="#FFF" intensity="5"></a-light>
+            <a-light type="directional" color="#FFF" intensity="3" position="2 5 3"></a-light>
+            <a-light type="directional" color="#fff" intensity="2" position="-3 2 -2"></a-light>
+            <a-light type="directional" color="#fff" intensity="2" position="0 3 -4"></a-light>
 
             <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
+            <!-- Marker 0 - First Model -->
             <a-entity mindar-image-target="targetIndex: 0">
                 <a-gltf-model src="#model1"
                               position="0 0 0"
@@ -138,63 +156,71 @@
         </a-scene>
     </div>
     
-    <div class="status" id="status">Point camera at marker</div>
-    <div class="loading" id="loading">Loading AR...</div>
-<div class="marker-info" id="markerInfo">Detected marker: None</div>
+    <button id="startButton">Start AR</button>
+    <div class="status" id="status">Click Start AR to begin</div>
+    <div class="loading" id="loading" style="display: none;">Loading AR...</div>
+    <div class="marker-info" id="markerInfo">Detected marker: None</div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const startButton = document.getElementById('startButton');
             const status = document.getElementById('status');
             const loading = document.getElementById('loading');
-const markerInfo = document.getElementById('markerInfo');
+            const markerInfo = document.getElementById('markerInfo');
             const sceneEl = document.querySelector('a-scene');
             
-            // Start AR automatically
-            setTimeout(() => {
-                startAR();
-            }, 500);
+            // Add event listeners to the scene
+            sceneEl.addEventListener('arReady', function() {
+                status.textContent = 'Point camera at any marker';
+                loading.style.display = 'none';
+            });
             
-            async function startAR() {
-                try {
-                    loading.style.display = 'block';
-                    
-                    // Get the AR system
-                    const arSystem = sceneEl.systems["mindar-image-system"];
-                    
-                    // Event handlers
-                    sceneEl.addEventListener('arReady', function() {
-                        status.textContent = 'Point camera at marker';
+            sceneEl.addEventListener('arError', function(evt) {
+                console.error('AR Error:', evt.detail);
+                status.textContent = 'AR failed to load: ' + (evt.detail || 'Unknown error');
+                loading.style.display = 'none';
+                startButton.style.display = 'block';
+            });
+            
+            // Start AR when button is clicked
+            startButton.addEventListener('click', function() {
+                startButton.style.display = 'none';
+                loading.style.display = 'block';
+                status.textContent = 'Starting AR...';
+                
+                // Get the AR system and start it
+                const arSystem = sceneEl.systems["mindar-image-system"];
+                if (arSystem) {
+                    arSystem.start().then(() => {
+                        console.log('AR system started successfully');
+                    }).catch(error => {
+                        console.error('Failed to start AR system:', error);
+                        status.textContent = 'Failed to start AR: ' + error.message;
                         loading.style.display = 'none';
+                        startButton.style.display = 'block';
                     });
-                    
-                    sceneEl.addEventListener('arError', function() {
-                        status.textContent = 'AR failed to load';
-                        loading.style.display = 'none';
-                    });
-                    
-                    // Start AR system
-                    arSystem.start();
-                    
-                    //  Handle marker detection for all markers
-                    const markers = document.querySelectorAll('[mindar-image-target]');
-                    
-                    markers.forEach((marker, index) => {
-                        marker.addEventListener('targetFound', function() {
-                            status.textContent = 'Marker ' + index + ' detected';
-                            markerInfo.textContent = 'Detected marker: ' + index;
-                    });
-                    
-                    marker.addEventListener('targetLost', function() {
-                            status.textContent = 'Point camera at any marker';
-                            markerInfo.textContent = 'Detected marker: None';
-                    });
-                    
-                } catch (error) {
-                    console.error('AR initialization error:', error);
-                    status.textContent = 'AR Error: ' + error.message;
+                } else {
+                    console.error('AR system not found');
+                    status.textContent = 'AR system not available';
                     loading.style.display = 'none';
+                    startButton.style.display = 'block';
                 }
-            }
+            });
+            
+            // Handle marker detection for all markers
+            const markers = document.querySelectorAll('[mindar-image-target]');
+            
+            markers.forEach((marker, index) => {
+                marker.addEventListener('targetFound', function() {
+                    status.textContent = 'Marker ' + index + ' detected';
+                    markerInfo.textContent = 'Detected marker: ' + index;
+                });
+                
+                marker.addEventListener('targetLost', function() {
+                    status.textContent = 'Point camera at any marker';
+                    markerInfo.textContent = 'Detected marker: None';
+                });
+            });
             
             // Handle window resize
             window.addEventListener('resize', function() {
@@ -205,7 +231,6 @@ const markerInfo = document.getElementById('markerInfo');
         });
     </script>
 </body>
-
 </html>
 
 
