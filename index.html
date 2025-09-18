@@ -75,7 +75,9 @@
             embedded>
             
             <a-assets>
-                <a-asset-item id="myModel" src="./model.glb?v=4"></a-asset-item>
+                <a-asset-item id="model1" src="./model1.glb?v=1"></a-asset-item>
+                <a-asset-item id="model2" src="./model2.glb?v=1"></a-asset-item>
+                <a-asset-item id="model3" src="./model3.glb?v=1"></a-asset-item>
               </a-assets>
 <a-light type="ambient" color="#FFF" intensity="5"></a-light>
             
@@ -105,23 +107,46 @@
 
             <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-            <a-entity id="target" mindar-image-target="targetIndex: 0">
-                <a-gltf-model src="#myModel"
+            <a-entity mindar-image-target="targetIndex: 0">
+                <a-gltf-model src="#model1"
                               position="0 0 0"
                               scale="0.5 0.5 0.5"
-                              rotation="0 0 0">
+                              rotation="0 0 0"
+                              animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
                 </a-gltf-model>
-              </a-entity>
+            </a-entity>
+
+            <!-- Marker 1 - Second Model -->
+            <a-entity mindar-image-target="targetIndex: 1">
+                <a-gltf-model src="#model2"
+                              position="0 0 0"
+                              scale="0.5 0.5 0.5"
+                              rotation="0 0 0"
+                              animation="property: rotation; to: 360 0 0; loop: true; dur: 8000">
+                </a-gltf-model>
+            </a-entity>
+
+            <!-- Marker 2 - Third Model -->
+            <a-entity mindar-image-target="targetIndex: 2">
+                <a-gltf-model src="#model3"
+                              position="0 0 0"
+                              scale="0.5 0.5 0.5"
+                              rotation="0 0 0"
+                              animation="property: position; to: 0 0.5 0; dir: alternate; loop: true; dur: 2000">
+                </a-gltf-model>
+            </a-entity>
         </a-scene>
     </div>
     
     <div class="status" id="status">Point camera at marker</div>
     <div class="loading" id="loading">Loading AR...</div>
+<div class="marker-info" id="markerInfo">Detected marker: None</div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const status = document.getElementById('status');
             const loading = document.getElementById('loading');
+const markerInfo = document.getElementById('markerInfo');
             const sceneEl = document.querySelector('a-scene');
             
             // Start AR automatically
@@ -150,14 +175,18 @@
                     // Start AR system
                     arSystem.start();
                     
-                    // Handle marker detection
-                    const target = document.getElementById('target');
-                    target.addEventListener('targetFound', function() {
-                        status.textContent = 'Marker detected';
+                    //  Handle marker detection for all markers
+                    const markers = document.querySelectorAll('[mindar-image-target]');
+                    
+                    markers.forEach((marker, index) => {
+                        marker.addEventListener('targetFound', function() {
+                            status.textContent = 'Marker ' + index + ' detected';
+                            markerInfo.textContent = 'Detected marker: ' + index;
                     });
                     
-                    target.addEventListener('targetLost', function() {
-                        status.textContent = 'Point camera at marker';
+                    marker.addEventListener('targetLost', function() {
+                            status.textContent = 'Point camera at any marker';
+                            markerInfo.textContent = 'Detected marker: None';
                     });
                     
                 } catch (error) {
@@ -178,6 +207,7 @@
 </body>
 
 </html>
+
 
 
 
