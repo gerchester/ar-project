@@ -7,95 +7,181 @@
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <style>
-        body { margin: 0; background: #000; overflow: hidden; }
-        #ar-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
-        .status {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            color: #fff; background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 20px;
-            font-family: Arial, sans-serif; font-size: 14px; z-index: 100;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
+        
+        body {
+            background: #000;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        #ar-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .status {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            z-index: 100;
+            pointer-events: none;
+        }
+        
         .loading {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            color: white; z-index: 15; text-align: center; font-family: Arial, sans-serif;
-            font-size: 16px; background: rgba(0,0,0,0.7); padding: 20px; border-radius: 10px;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            z-index: 15;
+            text-align: center;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
         }
     </style>
 </head>
 <body>
-<div id="ar-container">
-    <a-scene
-        id="scene"
-        mindar-image="imageTargetSrc: ./targets.mind;
-                      uiLoading: no;
-                      uiScanning: no;
-                      uiError: no;
-                      autoStart: false;"
-        color-space="sRGB"
-        renderer="colorManagement: true; physicallyCorrectLights: true"
-        vr-mode-ui="enabled: false"
-        device-orientation-permission-ui="enabled: false"
-        embedded>
-        
-        <a-assets id="assets"></a-assets>
+    <div id="ar-container">
+        <a-scene 
+            id="scene" 
+            mindar-image="imageTargetSrc: ./targets.mind; 
+                         uiLoading: no; 
+                         uiScanning: no; 
+                         uiError: no; 
+                         autoStart: false;"
+            color-space="sRGB" 
+            renderer="colorManagement: true; physicallyCorrectLights: true"
+            vr-mode-ui="enabled: false"
+            device-orientation-permission-ui="enabled: false"
+            embedded>
+            
+            <a-assets>
+                <a-asset-item id="myModel" src="./model1.glb?v=4"></a-asset-item>
+              </a-assets>
+<a-light type="ambient" color="#FFF" intensity="5"></a-light>
+            
+            <!-- 2. Directional Light - simulates sunlight (main light source) -->
+            <a-light type="directional" 
+                     color="#FFF" 
+                     intensity="3"
+                     position="2 5 3"
+                     target="#target">
+            </a-light>
+            
+            <!-- 3. Fill Light - soft light from the opposite side to reduce shadows -->
+            <a-light type="directional" 
+                     color="#fff" 
+                     intensity="2"
+                     position="-3 2 -2"
+                     target="#target">
+            </a-light>
+            
+            <!-- 4. Rim Light - highlights edges from behind -->
+            <a-light type="directional" 
+                     color="#fff" 
+                     intensity="2"
+                     position="0 3 -4"
+                     target="#target">
+            </a-light>
 
-        <!-- Свет -->
-        <a-light type="ambient" color="#FFF" intensity="5"></a-light>
-        <a-light type="directional" color="#FFF" intensity="3" position="2 5 3"></a-light>
+            <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-    </a-scene>
-</div>
+            <a-entity id="target" mindar-image-target="targetIndex: 0">
+                <a-gltf-model src="#myModel"
+                              position="0 0 0"
+                              scale="0.5 0.5 0.5"
+                              rotation="0 0 0">
+                </a-gltf-model>
+              </a-entity>
+        </a-scene>
+    </div>
+    
+    <div class="status" id="status">Point camera at marker</div>
+    <div class="loading" id="loading">Loading AR...</div>
 
-<div class="status" id="status">Point camera at marker</div>
-<div class="loading" id="loading">Loading AR...</div>
-
-<script>
-document.addEventListener('DOMContentLoaded', async function() {
-    const status = document.getElementById('status');
-    const loading = document.getElementById('loading');
-    const sceneEl = document.querySelector('a-scene');
-
-    // Загружаем JSON со связкой маркер → модель
-    const response = await fetch('./mapping.json');
-    const mapping = await response.json();
-
-    // Загружаем модели в <a-assets>
-    const assets = document.getElementById('assets');
-    Object.entries(mapping).forEach(([index, modelPath]) => {
-        const asset = document.createElement('a-asset-item');
-        asset.setAttribute('id', `model-${index}`);
-        asset.setAttribute('src', modelPath);
-        assets.appendChild(asset);
-    });
-
-    // Создаём сущности для каждого маркера
-    Object.keys(mapping).forEach(index => {
-        const entity = document.createElement('a-entity');
-        entity.setAttribute('mindar-image-target', `targetIndex: ${index}`);
-
-        const model = document.createElement('a-gltf-model');
-        model.setAttribute('src', `#model-${index}`);
-        model.setAttribute('position', '0 0 0');
-        model.setAttribute('scale', '0.5 0.5 0.5');
-
-        entity.appendChild(model);
-        sceneEl.appendChild(entity);
-
-        // Статус "нашёл/потерял"
-        entity.addEventListener('targetFound', () => { status.textContent = Marker ${index} detected; });
-        entity.addEventListener('targetLost', () => { status.textContent = Point camera at marker; });
-    });
-
-    // Автозапуск AR
-    setTimeout(() => {
-        const arSystem = sceneEl.systems["mindar-image-system"];
-        arSystem.start();
-        loading.style.display = 'none';
-    }, 500);
-});
-</script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const status = document.getElementById('status');
+            const loading = document.getElementById('loading');
+            const sceneEl = document.querySelector('a-scene');
+            
+            // Start AR automatically
+            setTimeout(() => {
+                startAR();
+            }, 500);
+            
+            async function startAR() {
+                try {
+                    loading.style.display = 'block';
+                    
+                    // Get the AR system
+                    const arSystem = sceneEl.systems["mindar-image-system"];
+                    
+                    // Event handlers
+                    sceneEl.addEventListener('arReady', function() {
+                        status.textContent = 'Point camera at marker';
+                        loading.style.display = 'none';
+                    });
+                    
+                    sceneEl.addEventListener('arError', function() {
+                        status.textContent = 'AR failed to load';
+                        loading.style.display = 'none';
+                    });
+                    
+                    // Start AR system
+                    arSystem.start();
+                    
+                    // Handle marker detection
+                    const target = document.getElementById('target');
+                    target.addEventListener('targetFound', function() {
+                        status.textContent = 'Marker detected';
+                    });
+                    
+                    target.addEventListener('targetLost', function() {
+                        status.textContent = 'Point camera at marker';
+                    });
+                    
+                } catch (error) {
+                    console.error('AR initialization error:', error);
+                    status.textContent = 'AR Error: ' + error.message;
+                    loading.style.display = 'none';
+                }
+            }
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (sceneEl.renderer) {
+                    sceneEl.renderer.setSize(window.innerWidth, window.innerHeight);
+                }
+            });
+        });
+    </script>
 </body>
+
 </html>
+
+
+
+
 
 
 
