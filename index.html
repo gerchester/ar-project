@@ -115,10 +115,14 @@
             <!-- Marker 1 - Second Model -->
             <a-entity mindar-image-target="targetIndex: 1">
                 <a-gltf-model src="#model2"
-                              position="0 0 0"
+                               position="0 0 0"
                               scale="0.5 0.5 0.5"
                               rotation="0 0 0"
-                              animation="property: rotation; to: 360 0 0; loop: true; dur: 10000">
+                              animation="property: object3D.rotation.y; 
+                                         to: 6.283; 
+                                         loop: true; 
+                                         dur: 6000;
+                                         easing: linear">
                 </a-gltf-model>
             </a-entity>
   <!-- Marker 2 - Second Model -->
@@ -203,6 +207,7 @@
     </script>
 </body>
 </html>
+
 
 
 
