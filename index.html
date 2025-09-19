@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebAR Marker Tracking</title>
+    <title>WebAR Multiple Marker Tracking</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <style>
@@ -57,13 +57,28 @@
             padding: 20px;
             border-radius: 10px;
         }
+        
+        .marker-info {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 100;
+            text-align: center;
+            max-width: 80%;
+        }
     </style>
 </head>
 <body>
     <div id="ar-container">
         <a-scene 
             id="scene" 
-            mindar-image="imageTargetSrc: ./targetss.mind; 
+            mindar-image="imageTargetSrc: ./targets.mind; 
                          uiLoading: no; 
                          uiScanning: no; 
                          uiError: no; 
@@ -77,49 +92,28 @@
             <a-assets>
                 <a-asset-item id="model1" src="./model1.glb?v=1"></a-asset-item>
                 <a-asset-item id="model2" src="./model2.glb?v=1"></a-asset-item>
-               
-              </a-assets>
-<a-light type="ambient" color="#FFF" intensity="5"></a-light>
-            
-            <!-- 2. Directional Light - simulates sunlight (main light source) -->
-            <a-light type="directional" 
-                     color="#FFF" 
-                     intensity="3"
-                     position="2 5 3"
-                     target="#target">
-            </a-light>
-            
-            <!-- 3. Fill Light - soft light from the opposite side to reduce shadows -->
-            <a-light type="directional" 
-                     color="#fff" 
-                     intensity="2"
-                     position="-3 2 -2"
-                     target="#target">
-            </a-light>
-            
-            <!-- 4. Rim Light - highlights edges from behind -->
-            <a-light type="directional" 
-                     color="#fff" 
-                     intensity="2"
-                     position="0 3 -4"
-                     target="#target">
-            </a-light>
+            </a-assets>
+
+            <!-- Lighting Setup - Removed target attributes for multiple markers -->
+            <a-light type="ambient" color="#FFF" intensity="5"></a-light>
+            <a-light type="directional" color="#FFF" intensity="3" position="2 5 3"></a-light>
+            <a-light type="directional" color="#fff" intensity="2" position="-3 2 -2"></a-light>
+            <a-light type="directional" color="#fff" intensity="2" position="0 3 -4"></a-light>
 
             <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-         
-            </a-entity>
-
-            <!-- Marker 1 - Second Model -->
+            <!-- Marker 0 - First Model -->
             <a-entity mindar-image-target="targetIndex: 0">
                 <a-gltf-model src="#model1"
                               position="0 0 0"
                               scale="0.5 0.5 0.5"
                               rotation="0 0 0"
-                              animation="property: rotation; to: 360 0 0; loop: true; dur: 8000">
+                              animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
                 </a-gltf-model>
             </a-entity>
-<a-entity mindar-image-target="targetIndex: 1">
+
+            <!-- Marker 1 - Second Model -->
+            <a-entity mindar-image-target="targetIndex: 1">
                 <a-gltf-model src="#model2"
                               position="0 0 0"
                               scale="0.5 0.5 0.5"
@@ -127,18 +121,18 @@
                               animation="property: rotation; to: 360 0 0; loop: true; dur: 8000">
                 </a-gltf-model>
             </a-entity>
-                </a-gltf-model>
-              </a-entity>
         </a-scene>
     </div>
     
     <div class="status" id="status">Point camera at marker</div>
     <div class="loading" id="loading">Loading AR...</div>
+    <div class="marker-info" id="markerInfo">Detected marker: None</div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const status = document.getElementById('status');
             const loading = document.getElementById('loading');
+            const markerInfo = document.getElementById('markerInfo');
             const sceneEl = document.querySelector('a-scene');
             
             // Start AR automatically
@@ -155,26 +149,32 @@
                     
                     // Event handlers
                     sceneEl.addEventListener('arReady', function() {
-                        status.textContent = 'Point camera at marker';
+                        status.textContent = 'Point camera at any marker';
                         loading.style.display = 'none';
                     });
                     
-                    sceneEl.addEventListener('arError', function() {
-                        status.textContent = 'AR failed to load';
+                    sceneEl.addEventListener('arError', function(evt) {
+                        console.error('AR Error:', evt.detail);
+                        status.textContent = 'AR failed to load: ' + (evt.detail || 'Unknown error');
                         loading.style.display = 'none';
                     });
                     
                     // Start AR system
                     arSystem.start();
                     
-                    // Handle marker detection
-                    const target = document.getElementById('target');
-                    target.addEventListener('targetFound', function() {
-                        status.textContent = 'Marker detected';
-                    });
+                    // Handle marker detection for ALL markers
+                    const markers = document.querySelectorAll('[mindar-image-target]');
                     
-                    target.addEventListener('targetLost', function() {
-                        status.textContent = 'Point camera at marker';
+                    markers.forEach((marker, index) => {
+                        marker.addEventListener('targetFound', function() {
+                            status.textContent = 'Marker ' + index + ' detected';
+                            markerInfo.textContent = 'Detected marker: ' + index;
+                        });
+                        
+                        marker.addEventListener('targetLost', function() {
+                            status.textContent = 'Point camera at any marker';
+                            markerInfo.textContent = 'Detected marker: None';
+                        });
                     });
                     
                 } catch (error) {
@@ -193,8 +193,8 @@
         });
     </script>
 </body>
-
 </html>
+
 
 
 
