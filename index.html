@@ -78,7 +78,7 @@
     <div id="ar-container">
         <a-scene 
             id="scene" 
-            mindar-image="imageTargetSrc: ./targetsO.mind?v=1; 
+            mindar-image="imageTargetSrc: ./targets2O.mind?v=2; 
                          uiLoading: no; 
                          uiScanning: no; 
                          uiError: no; 
@@ -108,13 +108,22 @@
                               position="0 0 0"
                               scale="0.5 0.5 0.5"
                               rotation="0 0 0"
-                              animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
+                              animation="property: rotation; to: 0 360 0; loop: true; dur: 8000">
                 </a-gltf-model>
             </a-entity>
 
             <!-- Marker 1 - Second Model -->
             <a-entity mindar-image-target="targetIndex: 1">
                 <a-gltf-model src="#model2"
+                              position="0 0 0"
+                              scale="0.5 0.5 0.5"
+                              rotation="0 0 0"
+                              animation="property: rotation; to: 360 0 0; loop: true; dur: 8000">
+                </a-gltf-model>
+            </a-entity>
+  <!-- Marker 2 - Second Model -->
+            <a-entity mindar-image-target="targetIndex: 2">
+                <a-gltf-model src="#model1"
                               position="0 0 0"
                               scale="0.5 0.5 0.5"
                               rotation="0 0 0"
@@ -194,6 +203,7 @@
     </script>
 </body>
 </html>
+
 
 
 
