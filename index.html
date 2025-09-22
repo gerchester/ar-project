@@ -82,7 +82,10 @@
                          uiLoading: no; 
                          uiScanning: no; 
                          uiError: no; 
-                         autoStart: false;"
+                         autoStart: false;
+ maxTrack: 2;
+                 filterMinCF: 0.001;
+                 filterBeta: 1000;"
             color-space="sRGB" 
             renderer="colorManagement: true; physicallyCorrectLights: true"
             vr-mode-ui="enabled: false"
@@ -114,6 +117,7 @@
             </a-entity>
 
             <!-- Marker 1 - Second Model -->
+<a-entity stabilize="intensity: 0.7; positionLag: 12; rotationLag: 18">
             <a-entity mindar-image-target="targetIndex: 1">
                 <a-gltf-model src="#model2"
                                position="0 0 0"
@@ -295,6 +299,7 @@
     </script>
 </body>
 </html>
+
 
 
 
