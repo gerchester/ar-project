@@ -3,207 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebAR Multiple Marker Tracking</title>
+    <title>Smooth AR Rotation</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            background: #000;
-            overflow: hidden;
-            width: 100vw;
-            height: 100vh;
-        }
-        
-        #ar-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-        
-        .status {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #fff;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-family: Arial, sans-serif;
-            font-size: 14px;
-            z-index: 100;
-            pointer-events: none;
-        }
-        
-        .loading {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            z-index: 15;
-            text-align: center;
-            font-family: Arial, sans-serif;
-            font-size: 16px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 20px;
-            border-radius: 10px;
-        }
-        
-        .marker-info {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #fff;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 12px;
-            z-index: 100;
-            text-align: center;
-            max-width: 80%;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #000; overflow: hidden; width: 100vw; height: 100vh; }
+        #ar-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
     </style>
 </head>
 <body>
     <div id="ar-container">
-        <a-scene 
-            id="scene" 
-            mindar-image="imageTargetSrc: ./targetsO.mind?v=3; 
-                         uiLoading: no; 
-                         uiScanning: no; 
-                         uiError: no; 
-                         autoStart: false;"
-            color-space="sRGB" 
-            renderer="colorManagement: true; physicallyCorrectLights: true"
-            vr-mode-ui="enabled: false"
-            device-orientation-permission-ui="enabled: false"
-            embedded>
+        <a-scene mindar-image="imageTargetSrc: ./targets.mind; autoStart: false;"
+                 embedded>
             
             <a-assets>
-                <a-asset-item id="model1" src="./model5 strengthened ladder tray 300x80.glb?v=3"></a-asset-item>
-                <a-asset-item id="model2" src="./model4 200x50 perf.glb?v=4"></a-asset-item>
+                <a-asset-item id="model1" src="./model1.glb"></a-asset-item>
+                <a-asset-item id="model2" src="./model2.glb"></a-asset-item>
             </a-assets>
 
-            <!-- Lighting Setup - Removed target attributes for multiple markers -->
-            <a-light type="ambient" color="#FFF" intensity="5"></a-light>
-            <a-light type="directional" color="#FFF" intensity="3" position="2 5 3"></a-light>
-            <a-light type="directional" color="#fff" intensity="2" position="-3 2 -2"></a-light>
-            <a-light type="directional" color="#fff" intensity="2" position="0 3 -4"></a-light>
+            <!-- Lighting -->
+            <a-light type="ambient" color="#FFF" intensity="0.6"></a-light>
+            <a-light type="directional" color="#FFF" intensity="0.8" position="2 5 3"></a-light>
 
             <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-            <!-- Marker 0 - First Model -->
+            <!-- Marker 0 - Using custom smooth rotation -->
             <a-entity mindar-image-target="targetIndex: 0">
                 <a-gltf-model src="#model1"
                               position="0 0 0"
                               scale="0.5 0.5 0.5"
                               rotation="0 0 0"
-                              animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
+                              smooth-rotation="speed: 0.001">
                 </a-gltf-model>
             </a-entity>
 
-            <!-- Marker 1 - Second Model -->
+            <!-- Marker 1 - Using improved A-Frame animation -->
             <a-entity mindar-image-target="targetIndex: 1">
                 <a-gltf-model src="#model2"
-                               position="0 0 0"
-                              scale="0.5 0.5 0.5"
-                              rotation="0 0 0"
-                              animation="property:  rotation; to: 0 360 0; loop: true; dur: 10000">
-            </a-entity>
-  <!-- Marker 2 - Second Model -->
-            <a-entity mindar-image-target="targetIndex: 2">
-                <a-gltf-model src="#model1"
                               position="0 0 0"
                               scale="0.5 0.5 0.5"
                               rotation="0 0 0"
-                              animation="property: rotation; to: 360 0 0; loop: true; dur: 8000">
+                              animation="property: object3D.rotation.y; 
+                                         to: 6.283; 
+                                         loop: true; 
+                                         dur: 6000;
+                                         easing: linear">
                 </a-gltf-model>
             </a-entity>
         </a-scene>
     </div>
-    
-    <div class="status" id="status">Point camera at marker</div>
-    <div class="loading" id="loading">Loading AR...</div>
-    <div class="marker-info" id="markerInfo">Detected marker: None</div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const status = document.getElementById('status');
-            const loading = document.getElementById('loading');
-            const markerInfo = document.getElementById('markerInfo');
-            const sceneEl = document.querySelector('a-scene');
+        // Custom component for smooth continuous rotation
+        AFRAME.registerComponent('smooth-rotation', {
+            schema: {
+                speed: {type: 'number', default: 0.001}
+            },
             
-            // Start AR automatically
-            setTimeout(() => {
-                startAR();
-            }, 500);
-            
-            async function startAR() {
-                try {
-                    loading.style.display = 'block';
-                    
-                    // Get the AR system
-                    const arSystem = sceneEl.systems["mindar-image-system"];
-                    
-                    // Event handlers
-                    sceneEl.addEventListener('arReady', function() {
-                        status.textContent = 'Point camera at any marker';
-                        loading.style.display = 'none';
-                    });
-                    
-                    sceneEl.addEventListener('arError', function(evt) {
-                        console.error('AR Error:', evt.detail);
-                        status.textContent = 'AR failed to load: ' + (evt.detail || 'Unknown error');
-                        loading.style.display = 'none';
-                    });
-                    
-                    // Start AR system
-                    arSystem.start();
-                    
-                    // Handle marker detection for ALL markers
-                    const markers = document.querySelectorAll('[mindar-image-target]');
-                    
-                    markers.forEach((marker, index) => {
-                        marker.addEventListener('targetFound', function() {
-                            status.textContent = 'Marker ' + index + ' detected';
-                            markerInfo.textContent = 'Detected marker: ' + index;
-                        });
-                        
-                        marker.addEventListener('targetLost', function() {
-                            status.textContent = 'Point camera at any marker';
-                            markerInfo.textContent = 'Detected marker: None';
-                        });
-                    });
-                    
-                } catch (error) {
-                    console.error('AR initialization error:', error);
-                    status.textContent = 'AR Error: ' + error.message;
-                    loading.style.display = 'none';
-                }
+            tick: function (time, timeDelta) {
+                // Smooth rotation without resetting
+                this.el.object3D.rotation.y += this.data.speed * (timeDelta / 16);
             }
-            
-            // Handle window resize
-            window.addEventListener('resize', function() {
-                if (sceneEl.renderer) {
-                    sceneEl.renderer.setSize(window.innerWidth, window.innerHeight);
-                }
-            });
+        });
+
+        // Start AR when scene is loaded
+        document.querySelector('a-scene').addEventListener('loaded', function() {
+            const arSystem = this.systems["mindar-image-system"];
+            arSystem.start();
         });
     </script>
 </body>
 </html>
-
-
 
 
 
