@@ -78,7 +78,7 @@
     <div id="ar-container">
         <a-scene 
             id="scene" 
-            mindar-image="imageTargetSrc: ./targetsO.mind?v=3; 
+            mindar-image="imageTargetSrc: ./ucOtargetsO.mind?v=3; 
                          uiLoading: no; 
                          uiScanning: no; 
                          uiError: no; 
@@ -90,8 +90,17 @@
             embedded>
             
             <a-assets>
-                <a-asset-item id="model1" src="./model5 strengthened ladder tray 300x80.glb?v=3"></a-asset-item>
-                <a-asset-item id="model2" src="./model4 200x50 perf.glb?v=4"></a-asset-item>
+                <a-asset-item id="model1" src="./model1 Lotok gluhoy 50.glb?v=1"></a-asset-item>
+                <a-asset-item id="model2" src="./model2 Lotok gluhoy 65.glb?v=1"></a-asset-item>
+                <a-asset-item id="model3" src="./model3 Lotok gluhoy 85.glb?v=1"></a-asset-item>
+                <a-asset-item id="model4" src="./model4 Lotok gluhoy 100.glb?v=1"></a-asset-item>
+                <a-asset-item id="model5" src="./model5 Lotok gluhoy 150.glb?v=1"></a-asset-item>
+                <a-asset-item id="model6" src="./model6 Lotok perf 50.glb?v=1"></a-asset-item>
+                <a-asset-item id="model7" src="./model7 Lotok perf 65.glb?v=1"></a-asset-item>
+                <a-asset-item id="model8" src="./model8 Lotok perf 85.glb?v=1"></a-asset-item>
+                <a-asset-item id="model9" src="./model9 Lotok perf 100.glb?v=1"></a-asset-item>
+                <a-asset-item id="model10" src="./model10 Lotok perf 150.glb?v=1"></a-asset-item>
+                
             </a-assets>
 
             <!-- Lighting Setup - Removed target attributes for multiple markers -->
@@ -122,7 +131,62 @@
             </a-entity>
   <!-- Marker 2 - Second Model -->
             <a-entity mindar-image-target="targetIndex: 2">
-                <a-gltf-model src="#model1"
+                <a-gltf-model src="#model3"
+                              position="0 0 0"
+                              scale="0.5 0.5 0.5"
+                              rotation="0 0 0"
+                              smooth-rotation="speed: 0.006">
+                </a-gltf-model>
+            </a-entity>
+            <a-entity mindar-image-target="targetIndex: 3">
+                <a-gltf-model src="#model4"
+                              position="0 0 0"
+                              scale="0.5 0.5 0.5"
+                              rotation="0 0 0"
+                              smooth-rotation="speed: 0.006">
+                </a-gltf-model>
+            <a-entity mindar-image-target="targetIndex: 4">
+                <a-gltf-model src="#model5"
+                              position="0 0 0"
+                              scale="0.5 0.5 0.5"
+                              rotation="0 0 0"
+                              smooth-rotation="speed: 0.006">
+                </a-gltf-model>
+            </a-entity>
+                <a-entity mindar-image-target="targetIndex: 5">
+                <a-gltf-model src="#model6"
+                              position="0 0 0"
+                              scale="0.5 0.5 0.5"
+                              rotation="0 0 0"
+                              smooth-rotation="speed: 0.006">
+                </a-gltf-model>
+            </a-entity>
+                <a-entity mindar-image-target="targetIndex: 6">
+                <a-gltf-model src="#model7"
+                              position="0 0 0"
+                              scale="0.5 0.5 0.5"
+                              rotation="0 0 0"
+                              smooth-rotation="speed: 0.006">
+                </a-gltf-model>
+            </a-entity>
+                <a-entity mindar-image-target="targetIndex: 7">
+                <a-gltf-model src="#model8"
+                              position="0 0 0"
+                              scale="0.5 0.5 0.5"
+                              rotation="0 0 0"
+                              smooth-rotation="speed: 0.006">
+                </a-gltf-model>
+            </a-entity>
+                <a-entity mindar-image-target="targetIndex: 8">
+                <a-gltf-model src="#model9"
+                              position="0 0 0"
+                              scale="0.5 0.5 0.5"
+                              rotation="0 0 0"
+                              smooth-rotation="speed: 0.006">
+                </a-gltf-model>
+            </a-entity>
+                <a-entity mindar-image-target="targetIndex: 9">
+                <a-gltf-model src="#model10"
                               position="0 0 0"
                               scale="0.5 0.5 0.5"
                               rotation="0 0 0"
@@ -223,6 +287,7 @@
     </script>
 </body>
 </html>
+
 
 
 
