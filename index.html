@@ -137,6 +137,34 @@
     <div class="marker-info" id="markerInfo">Detected marker: None</div>
 
     <script>
+ // Simple stabilization component
+    AFRAME.registerComponent('simple-stabilize', {
+        schema: {
+            amount: {type: 'number', default: 0.3}
+        },
+        
+        init: function() {
+            this.originalPosition = new THREE.Vector3();
+            this.originalRotation = new THREE.Euler();
+            this.originalPosition.copy(this.el.object3D.position);
+            this.originalRotation.copy(this.el.object3D.rotation);
+        },
+        
+        tick: function() {
+            // Gradually return to original position and rotation
+            this.el.object3D.position.lerp(this.originalPosition, this.data.amount);
+            
+            // For rotation, we need to handle it differently
+            const currentRotation = this.el.object3D.rotation;
+            currentRotation.x = this.lerp(currentRotation.x, this.originalRotation.x, this.data.amount);
+            currentRotation.y = this.lerp(currentRotation.y, this.originalRotation.y, this.data.amount);
+            currentRotation.z = this.lerp(currentRotation.z, this.originalRotation.z, this.data.amount);
+        },
+        
+        lerp: function(a, b, t) {
+            return a + (b - a) * t;
+        }
+    });
     // Register the smooth rotation component
     AFRAME.registerComponent('smooth-rotation', {
         schema: {
@@ -223,6 +251,7 @@
     </script>
 </body>
 </html>
+
 
 
 
