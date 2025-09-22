@@ -137,81 +137,93 @@
     <div class="marker-info" id="markerInfo">Detected marker: None</div>
 
     <script>
-AFRAME.registerComponent('smooth-rotation', {
-    schema: {
-        speed: {type: 'number', default: 0.001}
-    },
-    
-    tick: function (time, timeDelta) {
-        // Rotate smoothly without resetting
-        this.el.object3D.rotation.y += this.data.speed * (timeDelta / 16);
-    }
-});
-        document.addEventListener('DOMContentLoaded', function() {
-            const status = document.getElementById('status');
-            const loading = document.getElementById('loading');
-            const markerInfo = document.getElementById('markerInfo');
-            const sceneEl = document.querySelector('a-scene');
-            
-            // Start AR automatically
-            setTimeout(() => {
+    // Register the smooth rotation component
+    AFRAME.registerComponent('smooth-rotation', {
+        schema: {
+            speed: {type: 'number', default: 0.001}
+        },
+        
+        tick: function (time, timeDelta) {
+            // Smooth rotation without resetting
+            this.el.object3D.rotation.y += this.data.speed * (timeDelta / 16);
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const status = document.getElementById('status');
+        const loading = document.getElementById('loading');
+        const sceneEl = document.querySelector('a-scene');
+        
+        // First request camera permission only
+        async function initAR() {
+            try {
+                loading.style.display = 'block';
+                status.textContent = 'Requesting camera access...';
+                
+                // Request camera access first
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                
+                // Stop the camera stream (MindAR will restart it)
+                stream.getTracks().forEach(track => track.stop());
+                
+                // Now start AR
                 startAR();
-            }, 500);
-            
-            async function startAR() {
-                try {
-                    loading.style.display = 'block';
-                    
-                    // Get the AR system
-                    const arSystem = sceneEl.systems["mindar-image-system"];
-                    
-                    // Event handlers
-                    sceneEl.addEventListener('arReady', function() {
-                        status.textContent = 'Point camera at any marker';
-                        loading.style.display = 'none';
-                    });
-                    
-                    sceneEl.addEventListener('arError', function(evt) {
-                        console.error('AR Error:', evt.detail);
-                        status.textContent = 'AR failed to load: ' + (evt.detail || 'Unknown error');
-                        loading.style.display = 'none';
-                    });
-                    
-                    // Start AR system
-                    arSystem.start();
-                    
-                    // Handle marker detection for ALL markers
-                    const markers = document.querySelectorAll('[mindar-image-target]');
-                    
-                    markers.forEach((marker, index) => {
-                        marker.addEventListener('targetFound', function() {
-                            status.textContent = 'Marker ' + index + ' detected';
-                            markerInfo.textContent = 'Detected marker: ' + index;
-                        });
-                        
-                        marker.addEventListener('targetLost', function() {
-                            status.textContent = 'Point camera at any marker';
-                            markerInfo.textContent = 'Detected marker: None';
-                        });
-                    });
-                    
-                } catch (error) {
-                    console.error('AR initialization error:', error);
-                    status.textContent = 'AR Error: ' + error.message;
-                    loading.style.display = 'none';
-                }
+            } catch (error) {
+                console.error('Camera permission error:', error);
+                status.textContent = 'Please allow camera access for AR';
+                loading.style.display = 'none';
             }
+        }
+        
+        function startAR() {
+            status.textContent = 'Loading AR...';
             
-            // Handle window resize
-            window.addEventListener('resize', function() {
-                if (sceneEl.renderer) {
-                    sceneEl.renderer.setSize(window.innerWidth, window.innerHeight);
-                }
+            // Get the AR system
+            const arSystem = sceneEl.systems["mindar-image-system"];
+            
+            // Event handlers
+            sceneEl.addEventListener('arReady', function() {
+                status.textContent = 'Point camera at marker';
+                loading.style.display = 'none';
             });
+            
+            sceneEl.addEventListener('arError', function(evt) {
+                console.error('AR Error:', evt.detail);
+                status.textContent = 'AR failed to load';
+                loading.style.display = 'none';
+            });
+            
+            // Start AR system
+            arSystem.start();
+            
+            // Handle marker detection
+            const markers = document.querySelectorAll('[mindar-image-target]');
+            
+            markers.forEach((marker, index) => {
+                marker.addEventListener('targetFound', function() {
+                    status.textContent = 'Marker ' + index + ' detected';
+                });
+                
+                marker.addEventListener('targetLost', function() {
+                    status.textContent = 'Point camera at marker';
+                });
+            });
+        }
+        
+        // Start the initialization process
+        setTimeout(initAR, 500);
+        
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (sceneEl.renderer) {
+                sceneEl.renderer.setSize(window.innerWidth, window.innerHeight);
+            }
         });
+    });
     </script>
 </body>
 </html>
+
 
 
 
