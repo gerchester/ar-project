@@ -108,7 +108,7 @@
                               position="0 0 0"
                               scale="0.5 0.5 0.5"
                               rotation="0 0 0"
-                              animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
+                              smooth-rotation="speed: 0.001">
                 </a-gltf-model>
             </a-entity>
 
@@ -137,6 +137,16 @@
     <div class="marker-info" id="markerInfo">Detected marker: None</div>
 
     <script>
+AFRAME.registerComponent('smooth-rotation', {
+    schema: {
+        speed: {type: 'number', default: 0.001}
+    },
+    
+    tick: function (time, timeDelta) {
+        // Rotate smoothly without resetting
+        this.el.object3D.rotation.y += this.data.speed * (timeDelta / 16);
+    }
+});
         document.addEventListener('DOMContentLoaded', function() {
             const status = document.getElementById('status');
             const loading = document.getElementById('loading');
@@ -202,6 +212,7 @@
     </script>
 </body>
 </html>
+
 
 
 
