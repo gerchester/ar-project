@@ -149,8 +149,11 @@
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 9">
-                <a-gltf-model src="#model10" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006" smooth-transform="lerpFactor: 0.15"></a-gltf-model>
-            </a-entity>
+  <a-entity smooth-transform="lerpFactor: 0.12">
+    <a-box position="0 0.2 0" color="#00D1FF" depth="0.3" width="0.3" height="0.3"
+           animation="property: rotation; to: 0 360 0; loop: true; dur: 4000"></a-box>
+  </a-entity>
+</a-entity>
         </a-scene>
     </div>
     
@@ -265,6 +268,7 @@
     </script>
 </body>
 </html>
+
 
 
 
