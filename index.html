@@ -6,6 +6,20 @@
     <title>WebAR Multiple Marker Tracking</title>
     <script src="./aframe.min.js"></script>
     <script src="./mindar-image-aframe.prod.js"></script>
+    <script>
+    let lastPos = new THREE.Vector3();
+let lastQuat = new THREE.Quaternion();
+
+AFRAME.registerComponent('smooth-follow', {
+  tick: function () {
+    const target = this.el.object3D;
+    lastPos.lerp(target.position, 0.2); // сглаживаем 20%
+    lastQuat.slerp(target.quaternion, 0.2);
+    target.position.copy(lastPos);
+    target.quaternion.copy(lastQuat);
+  }
+});
+    </script>
     <style>
         * {
             margin: 0;
@@ -113,13 +127,17 @@
 
             <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-            <a-entity mindar-image-target="targetIndex: 0">
-                <a-gltf-model src="#model1" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
-            </a-entity>
+           
+      <a-entity mindar-image-target="targetIndex: 0">
+        <!-- Модель подключаем сюда -->
+        <a-entity gltf-model="./model.glb" scale="0.5 0.5 0.5" smooth-follow></a-entity>
+      </a-entity>
+   
 
-            <a-entity mindar-image-target="targetIndex: 1">
-                <a-gltf-model src="#model2" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
-            </a-entity>
+           <a-entity mindar-image-target="targetIndex: 1">
+        <!-- Модель подключаем сюда -->
+        <a-entity gltf-model="./model.glb" scale="0.5 0.5 0.5" smooth-follow smooth-rotation="speed: 0.006"></a-entity>
+      </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 2">
                 <a-gltf-model src="#model3" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
@@ -246,6 +264,7 @@
     </script>
 </body>
 </html>
+
 
 
 
