@@ -74,48 +74,55 @@
         }
     </style>
     <script> 
-        AFRAME.registerComponent('smooth-transform', {
-  schema: {
-    lerpFactor: { type: 'number', default: 0.12 } // 0.05 = очень плавно (большая задержка), 0.3 = быстрее (меньше сглаживания)
-  },
-  init: function () {
-    const THREE = AFRAME.THREE;
-    const obj = this.el.object3D;
-
-    // См.ниже — мы храним "сглаженное" состояние и будем интерполировать к сырому.
-    this.smoothedPos = new THREE.Vector3().copy(obj.position);
-    this.smoothedQuat = new THREE.Quaternion().copy(obj.quaternion);
-
-    // Найдём родителя с mindar-image-target (если есть) и сбрасываем сглаживание при появлении трека
-    let target = this.el;
-    while (target && !target.hasAttribute('mindar-image-target')) target = target.parentEl;
-    if (target) {
-      target.addEventListener('targetFound', () => {
-        // при первом нахождении — моментально подгоняем сглаженную позицию к текущей,
-        // чтобы не было резкого "скачка" в момент детекта
-        this.smoothedPos.copy(this.el.object3D.position);
-        this.smoothedQuat.copy(this.el.object3D.quaternion);
-      });
-      target.addEventListener('targetLost', () => {
-        // опция: можно обнулять или оставлять текущее сглаженное состояние
-      });
+         // sanity check
+    if (!window.AFRAME) {
+      console.error('AFRAME not found — убедись, что aframe.min.js реально подключён');
     }
-  },
-  tick: function (time, timeDelta) {
-    const obj = this.el.object3D;
-    // raw = текущее (необработанное) transform, которое генерит трекер
-    const rawPos = obj.position;
-    const rawQuat = obj.quaternion;
 
-    // интерполируем внутренние значения к raw
-    this.smoothedPos.lerp(rawPos, this.data.lerpFactor);
-    this.smoothedQuat.slerp(rawQuat, this.data.lerpFactor);
+    (function(){ // локальная область видимости
+      const THREE = AFRAME && AFRAME.THREE;
 
-    // применяем сглаженное состояние обратно на объект
-    obj.position.copy(this.smoothedPos);
-    obj.quaternion.copy(this.smoothedQuat);
-  }
-});
+      AFRAME.registerComponent('smooth-transform', {
+        schema: { lerpFactor: { type: 'number', default: 0.12 } },
+        init: function () {
+          const obj = this.el.object3D;
+          this.smoothedPos = new THREE.Vector3().copy(obj.position);
+          this.smoothedQuat = new THREE.Quaternion().copy(obj.quaternion);
+
+          // debug
+          // console.log('smooth-transform init for', this.el);
+
+          // Подгонка при первом детекте
+          let target = this.el;
+          while (target && !target.hasAttribute('mindar-image-target')) target = target.parentEl;
+          if (target) {
+            target.addEventListener('targetFound', () => {
+              this.smoothedPos.copy(this.el.object3D.position);
+              this.smoothedQuat.copy(this.el.object3D.quaternion);
+            });
+          }
+        },
+        tick: function (time, timeDelta) {
+          const rawPos = this.el.object3D.position;
+          const rawQuat = this.el.object3D.quaternion;
+          // интерполяция
+          this.smoothedPos.lerp(rawPos, this.data.lerpFactor);
+          this.smoothedQuat.slerp(rawQuat, this.data.lerpFactor);
+          // запись
+          this.el.object3D.position.copy(this.smoothedPos);
+          this.el.object3D.quaternion.copy(this.smoothedQuat);
+        }
+      });
+
+      AFRAME.registerComponent('smooth-rotation', {
+        schema: { speed: { type: 'number', default: 0.001 } },
+        tick: function (t, dt) {
+          this.el.object3D.rotation.y += this.data.speed * (dt / 16);
+        }
+      });
+
+      console.log('smooth-transform & smooth-rotation registered');
+    })();
     </script>
 </head>
 <body>
@@ -136,15 +143,15 @@
              
             <a-assets>
                 <a-asset-item id="model1" src="./model1_Lotok_gluhoy50.glb?v=1"></a-asset-item>
-                <a-asset-item id="model2" src="./model2 Lotok gluhoy 65.glb?v=1"></a-asset-item>
-                <a-asset-item id="model3" src="./model3 Lotok gluhoy 80.glb?v=1"></a-asset-item>
-                <a-asset-item id="model4" src="./model4 Lotok gluhoy 100.glb?v=1"></a-asset-item>
-                <a-asset-item id="model5" src="./model5 Lotok gluhoy 150.glb?v=1"></a-asset-item>
-                <a-asset-item id="model6" src="./model6 Lotok perf 50.glb?v=1"></a-asset-item>
-                <a-asset-item id="model7" src="./model7 Lotok perf 65.glb?v=1"></a-asset-item>
-                <a-asset-item id="model8" src="./model8 Lotok perf 80.glb?v=1"></a-asset-item>
-                <a-asset-item id="model9" src="./model9 Lotok perf 100.glb?v=1"></a-asset-item>
-                <a-asset-item id="model10" src="./model10 Lotok perf 150.glb?v=1"></a-asset-item>
+                <a-asset-item id="model2" src="./model2_Lotok_gluhoy65.glb?v=1"></a-asset-item>
+                <a-asset-item id="model3" src="./model3_Lotok_gluhoy80.glb?v=1"></a-asset-item>
+                <a-asset-item id="model4" src="./model4_Lotok_gluhoy100.glb?v=1"></a-asset-item>
+                <a-asset-item id="model5" src="./model5_Lotok_gluhoy150.glb?v=1"></a-asset-item>
+                <a-asset-item id="model6" src="./model6_Lotok_perf50.glb?v=1"></a-asset-item>
+                <a-asset-item id="model7" src="./model7_Lotok_perf65.glb?v=1"></a-asset-item>
+                <a-asset-item id="model8" src="./model8_Lotok_perf80.glb?v=1"></a-asset-item>
+                <a-asset-item id="model9" src="./model9_Lotok_perf100.glb?v=1"></a-asset-item>
+                <a-asset-item id="model10" src="./model10_Lotok_perf150.glb?v=1"></a-asset-item>
                 
             </a-assets>
 
@@ -213,20 +220,6 @@
     <div class="marker-info" id="markerInfo">Detected marker: None</div>
 
     <script>
-        
-        
-    // Register the smooth rotation component
-        
-    AFRAME.registerComponent('smooth-rotation', {
-        schema: {
-            speed: {type: 'number', default: 0.001}
-        },
-        
-        tick: function (time, timeDelta) {
-            // Smooth rotation without resetting
-            this.el.object3D.rotation.y += this.data.speed * (timeDelta / 16);
-        }
-    });
 
     document.addEventListener('DOMContentLoaded', function() {
         const status = document.getElementById('status');
@@ -302,6 +295,7 @@
     </script>
 </body>
 </html>
+
 
 
 
