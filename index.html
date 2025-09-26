@@ -73,57 +73,6 @@
             max-width: 80%;
         }
     </style>
-    <script> 
-         // sanity check
-    if (!window.AFRAME) {
-      console.error('AFRAME not found — убедись, что aframe.min.js реально подключён');
-    }
-
-    (function(){ // локальная область видимости
-      const THREE = AFRAME && AFRAME.THREE;
-
-      AFRAME.registerComponent('smooth-transform', {
-        schema: { lerpFactor: { type: 'number', default: 0.12 } },
-        init: function () {
-          const obj = this.el.object3D;
-          this.smoothedPos = new THREE.Vector3().copy(obj.position);
-          this.smoothedQuat = new THREE.Quaternion().copy(obj.quaternion);
-
-          // debug
-          // console.log('smooth-transform init for', this.el);
-
-          // Подгонка при первом детекте
-          let target = this.el;
-          while (target && !target.hasAttribute('mindar-image-target')) target = target.parentEl;
-          if (target) {
-            target.addEventListener('targetFound', () => {
-              this.smoothedPos.copy(this.el.object3D.position);
-              this.smoothedQuat.copy(this.el.object3D.quaternion);
-            });
-          }
-        },
-        tick: function (time, timeDelta) {
-          const rawPos = this.el.object3D.position;
-          const rawQuat = this.el.object3D.quaternion;
-          // интерполяция
-          this.smoothedPos.lerp(rawPos, this.data.lerpFactor);
-          this.smoothedQuat.slerp(rawQuat, this.data.lerpFactor);
-          // запись
-          this.el.object3D.position.copy(this.smoothedPos);
-          this.el.object3D.quaternion.copy(this.smoothedQuat);
-        }
-      });
-
-      AFRAME.registerComponent('smooth-rotation', {
-        schema: { speed: { type: 'number', default: 0.001 } },
-        tick: function (t, dt) {
-          this.el.object3D.rotation.y += this.data.speed * (dt / 16);
-        }
-      });
-
-      console.log('smooth-transform & smooth-rotation registered');
-    })();
-    </script>
 </head>
 <body>
     <div id="ar-container">
@@ -142,6 +91,7 @@
             embedded>
              
             <a-assets>
+                
                 <a-asset-item id="model1" src="./model1_Lotok_gluhoy50.glb?v=1"></a-asset-item>
                 <a-asset-item id="model2" src="./model2_Lotok_gluhoy65.glb?v=1"></a-asset-item>
                 <a-asset-item id="model3" src="./model3_Lotok_gluhoy80.glb?v=1"></a-asset-item>
@@ -164,40 +114,31 @@
             <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
             <a-entity mindar-image-target="targetIndex: 0">
-  <!-- wrapper отвечает за позицию/ориентацию + сглаживание -->
-  <a-entity smooth-transform="lerpFactor: 0.12"> 
-      <!-- внутрь - модель, на неё повесим анимацию вращения -->
-      <a-gltf-model src="#model1" position="0 0 0" scale="0.5 0.5 0.5"
-                    rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
-  </a-entity>
-</a-entity>
+                <a-gltf-model src="#model1" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
+            </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 1">
-  <!-- wrapper отвечает за позицию/ориентацию + сглаживание -->
-  <a-entity smooth-transform="lerpFactor: 0.12"> 
-      <!-- внутрь - модель, на неё повесим анимацию вращения -->
-      <a-gltf-model src="#model1" position="0 0 0" scale="0.5 0.5 0.5"
-                    rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
-  </a-entity>
-</a-entity>
+                <a-gltf-model src="#model2" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
+            </a-entity>
+
             <a-entity mindar-image-target="targetIndex: 2">
-                <a-gltf-model src="#model3" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006" ></a-gltf-model>
+                <a-gltf-model src="#model3" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 3">
-                <a-gltf-model src="#model4" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006" ></a-gltf-model>
+                <a-gltf-model src="#model4" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 4">
-                <a-gltf-model src="#model5" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006" ></a-gltf-model>
+                <a-gltf-model src="#model5" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 5">
-                <a-gltf-model src="#model6" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006" ></a-gltf-model>
+                <a-gltf-model src="#model6" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 6">
-                <a-gltf-model src="#model7" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006" ></a-gltf-model>
+                <a-gltf-model src="#model7" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 7">
@@ -205,13 +146,12 @@
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 8">
-                <a-gltf-model src="#model9" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006" ></a-gltf-model>
+                <a-gltf-model src="#model9" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 9">
-                <a-gltf-model src="#model9" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006" ></a-gltf-model>
+                <a-gltf-model src="#model10" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
             </a-entity>
-</a-entity>
         </a-scene>
     </div>
     
@@ -220,6 +160,17 @@
     <div class="marker-info" id="markerInfo">Detected marker: None</div>
 
     <script>
+    // Register the smooth rotation component
+    AFRAME.registerComponent('smooth-rotation', {
+        schema: {
+            speed: {type: 'number', default: 0.001}
+        },
+        
+        tick: function (time, timeDelta) {
+            // Smooth rotation without resetting
+            this.el.object3D.rotation.y += this.data.speed * (timeDelta / 16);
+        }
+    });
 
     document.addEventListener('DOMContentLoaded', function() {
         const status = document.getElementById('status');
@@ -295,13 +246,6 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
 
 
 
