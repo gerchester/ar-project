@@ -74,6 +74,48 @@
         }
     </style>
 </head>
+    AFRAME.registerComponent('smooth-transform', {
+  schema: {
+    lerpFactor: { type: 'number', default: 0.12 } // 0.05 = очень плавно (большая задержка), 0.3 = быстрее (меньше сглаживания)
+  },
+  init: function () {
+    const THREE = AFRAME.THREE;
+    const obj = this.el.object3D;
+
+    // См.ниже — мы храним "сглаженное" состояние и будем интерполировать к сырому.
+    this.smoothedPos = new THREE.Vector3().copy(obj.position);
+    this.smoothedQuat = new THREE.Quaternion().copy(obj.quaternion);
+
+    // Найдём родителя с mindar-image-target (если есть) и сбрасываем сглаживание при появлении трека
+    let target = this.el;
+    while (target && !target.hasAttribute('mindar-image-target')) target = target.parentEl;
+    if (target) {
+      target.addEventListener('targetFound', () => {
+        // при первом нахождении — моментально подгоняем сглаженную позицию к текущей,
+        // чтобы не было резкого "скачка" в момент детекта
+        this.smoothedPos.copy(this.el.object3D.position);
+        this.smoothedQuat.copy(this.el.object3D.quaternion);
+      });
+      target.addEventListener('targetLost', () => {
+        // опция: можно обнулять или оставлять текущее сглаженное состояние
+      });
+    }
+  },
+  tick: function (time, timeDelta) {
+    const obj = this.el.object3D;
+    // raw = текущее (необработанное) transform, которое генерит трекер
+    const rawPos = obj.position;
+    const rawQuat = obj.quaternion;
+
+    // интерполируем внутренние значения к raw
+    this.smoothedPos.lerp(rawPos, this.data.lerpFactor);
+    this.smoothedQuat.slerp(rawQuat, this.data.lerpFactor);
+
+    // применяем сглаженное состояние обратно на объект
+    obj.position.copy(this.smoothedPos);
+    obj.quaternion.copy(this.smoothedQuat);
+  }
+});
 <body>
     <div id="ar-container">
         <a-scene 
@@ -169,48 +211,7 @@
     <div class="marker-info" id="markerInfo">Detected marker: None</div>
 
     <script>
-        AFRAME.registerComponent('smooth-transform', {
-  schema: {
-    lerpFactor: { type: 'number', default: 0.12 } // 0.05 = очень плавно (большая задержка), 0.3 = быстрее (меньше сглаживания)
-  },
-  init: function () {
-    const THREE = AFRAME.THREE;
-    const obj = this.el.object3D;
-
-    // См.ниже — мы храним "сглаженное" состояние и будем интерполировать к сырому.
-    this.smoothedPos = new THREE.Vector3().copy(obj.position);
-    this.smoothedQuat = new THREE.Quaternion().copy(obj.quaternion);
-
-    // Найдём родителя с mindar-image-target (если есть) и сбрасываем сглаживание при появлении трека
-    let target = this.el;
-    while (target && !target.hasAttribute('mindar-image-target')) target = target.parentEl;
-    if (target) {
-      target.addEventListener('targetFound', () => {
-        // при первом нахождении — моментально подгоняем сглаженную позицию к текущей,
-        // чтобы не было резкого "скачка" в момент детекта
-        this.smoothedPos.copy(this.el.object3D.position);
-        this.smoothedQuat.copy(this.el.object3D.quaternion);
-      });
-      target.addEventListener('targetLost', () => {
-        // опция: можно обнулять или оставлять текущее сглаженное состояние
-      });
-    }
-  },
-  tick: function (time, timeDelta) {
-    const obj = this.el.object3D;
-    // raw = текущее (необработанное) transform, которое генерит трекер
-    const rawPos = obj.position;
-    const rawQuat = obj.quaternion;
-
-    // интерполируем внутренние значения к raw
-    this.smoothedPos.lerp(rawPos, this.data.lerpFactor);
-    this.smoothedQuat.slerp(rawQuat, this.data.lerpFactor);
-
-    // применяем сглаженное состояние обратно на объект
-    obj.position.copy(this.smoothedPos);
-    obj.quaternion.copy(this.smoothedQuat);
-  }
-});
+        
         
     // Register the smooth rotation component
         
@@ -299,6 +300,7 @@
     </script>
 </body>
 </html>
+
 
 
 
