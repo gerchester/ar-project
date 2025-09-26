@@ -114,29 +114,35 @@
             <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
             <a-entity mindar-image-target="targetIndex: 0">
+                 <a-entity butter-smooth="lag: 20">
                 <a-gltf-model src="#model1" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
             </a-entity>
-
+</a-entity>
             <a-entity mindar-image-target="targetIndex: 1">
+                 <a-entity butter-smooth="lag: 20">
                 <a-gltf-model src="#model2" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
             </a-entity>
-
+</a-entity>
             <a-entity mindar-image-target="targetIndex: 2">
+                 <a-entity butter-smooth="lag: 20">
                 <a-gltf-model src="#model3" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
             </a-entity>
-
+</a-entity>
             <a-entity mindar-image-target="targetIndex: 3">
+                 <a-entity butter-smooth="lag: 20">
                 <a-gltf-model src="#model4" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
             </a-entity>
-
+</a-entity>
             <a-entity mindar-image-target="targetIndex: 4">
+                 <a-entity butter-smooth="lag: 20">
                 <a-gltf-model src="#model5" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
             </a-entity>
-
+</a-entity>
             <a-entity mindar-image-target="targetIndex: 5">
+                 <a-entity butter-smooth="lag: 20">
                 <a-gltf-model src="#model6" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
             </a-entity>
-
+</a-entity>
             <a-entity mindar-image-target="targetIndex: 6">
                 <a-gltf-model src="#model7" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
             </a-entity>
@@ -160,6 +166,35 @@
     <div class="marker-info" id="markerInfo">Detected marker: None</div>
 
     <script>
+         AFRAME.registerComponent('butter-smooth', {
+        schema: {
+            lag: {type: 'number', default: 15} // Higher = smoother
+        },
+        
+        init: function() {
+            this.smoothedPosition = new THREE.Vector3();
+            this.smoothedQuaternion = new THREE.Quaternion();
+            
+            this.smoothedPosition.copy(this.el.object3D.position);
+            this.smoothedQuaternion.copy(this.el.object3D.quaternion);
+        },
+        
+        tick: function() {
+            // Exponential moving average - very stable
+            const alpha = 1.0 / this.data.lag;
+            
+            // Smooth position
+            this.smoothedPosition.x += (this.el.object3D.position.x - this.smoothedPosition.x) * alpha;
+            this.smoothedPosition.y += (this.el.object3D.position.y - this.smoothedPosition.y) * alpha;
+            this.smoothedPosition.z += (this.el.object3D.position.z - this.smoothedPosition.z) * alpha;
+            
+            // Smooth rotation using quaternion slerp
+            this.smoothedQuaternion.slerp(this.el.object3D.quaternion, alpha);
+            
+            this.el.object3D.position.copy(this.smoothedPosition);
+            this.el.object3D.quaternion.copy(this.smoothedQuaternion);
+        }
+    });
     // Register the smooth rotation component
     AFRAME.registerComponent('smooth-rotation', {
         schema: {
@@ -246,6 +281,7 @@
     </script>
 </body>
 </html>
+
 
 
 
