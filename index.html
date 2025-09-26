@@ -1,251 +1,150 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebAR Multiple Marker Tracking</title>
-    <script src="./aframe.min.js"></script>
-    <script src="./mindar-image-aframe.prod.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AR модель — быстрый тест</title>
+
+  <!-- ЛОКАЛЬНО подключай свои библиотеки (убедись, что файлы доступны и без .txt) -->
+  <script src="./aframe.min.js"></script>
+  <script src="./mindar-image-aframe.prod.js"></script>
+
+  <style>
+    html,body{height:100%;margin:0;background:#000;color:#fff;font-family:Arial;}
+    .status{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.6);padding:8px 12px;border-radius:12px;z-index:999}
+    .hint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.6);padding:6px 10px;border-radius:10px;font-size:13px;z-index:999}
+  </style>
+
+  <script>
+    // Компоненты регистрируем строго после того как AFRAME загружен
+    (function waitForAframe(){
+      if(!window.AFRAME){
+        console.warn('AFRAME пока не загружен, жду 50ms...');
+        return setTimeout(waitForAframe,50);
+      }
+
+      const THREE = AFRAME.THREE;
+      // плавное следование по позиции/повороту (wrapper)
+      AFRAME.registerComponent('smooth-transform', {
+        schema: { lerpFactor: { type: 'number', default: 0.08 } }, // поиграйся: 0.05-0.2
+        init: function () {
+          const obj = this.el.object3D;
+          this.smoothedPos = new THREE.Vector3().copy(obj.position);
+          this.smoothedQuat = new THREE.Quaternion().copy(obj.quaternion);
+
+          // при первом обнаружении маркера привязываем state чтобы не было скачка
+          let target = this.el;
+          while (target && !target.hasAttribute('mindar-image-target')) target = target.parentEl;
+          if (target) {
+            target.addEventListener('targetFound', () => {
+              this.smoothedPos.copy(this.el.object3D.position);
+              this.smoothedQuat.copy(this.el.object3D.quaternion);
+            });
+          }
+        },
+        tick: function () {
+          const rawPos = this.el.object3D.position;
+          const rawQuat = this.el.object3D.quaternion;
+          this.smoothedPos.lerp(rawPos, this.data.lerpFactor);
+          this.smoothedQuat.slerp(rawQuat, this.data.lerpFactor);
+          this.el.object3D.position.copy(this.smoothedPos);
+          this.el.object3D.quaternion.copy(this.smoothedQuat);
         }
-        
-        body {
-            background: #000;
-            overflow: hidden;
-            width: 100vw;
-            height: 100vh;
+      });
+
+      // простая плавная ротация модели вокруг своей оси (не трогает позицию)
+      AFRAME.registerComponent('smooth-rotation', {
+        schema: { speed: { type: 'number', default: 0.006 } },
+        tick: function (time, timeDelta) {
+          this.el.object3D.rotation.y += this.data.speed * (timeDelta / 16);
         }
-        
-        #ar-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-        
-        .status {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #fff;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-family: Arial, sans-serif;
-            font-size: 14px;
-            z-index: 100;
-            pointer-events: none;
-        }
-        
-        .loading {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            z-index: 15;
-            text-align: center;
-            font-family: Arial, sans-serif;
-            font-size: 16px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 20px;
-            border-radius: 10px;
-        }
-        
-        .marker-info {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #fff;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 12px;
-            z-index: 100;
-            text-align: center;
-            max-width: 80%;
-        }
-    </style>
+      });
+
+      console.log('smooth-transform & smooth-rotation registered');
+    })();
+  </script>
 </head>
 <body>
-    <div id="ar-container">
-        <a-scene 
-            id="scene" 
-            
-            mindar-image="imageTargetSrc: ./targetsSTR.mind; 
-                         uiLoading: no; 
-                         uiScanning: no; 
-                         uiError: no; 
-                         autoStart: false;"
-            color-space="sRGB" 
-            renderer="colorManagement: true; physicallyCorrectLights: true"
-            vr-mode-ui="enabled: false"
-            device-orientation-permission-ui="enabled: false"
-            embedded>
-             
-            <a-assets>
-                
-                <a-asset-item id="model1" src="./model1_Lotok_gluhoy50.glb?v=1"></a-asset-item>
-                <a-asset-item id="model2" src="./model2_Lotok_gluhoy65.glb?v=1"></a-asset-item>
-                <a-asset-item id="model3" src="./model3_Lotok_gluhoy80.glb?v=1"></a-asset-item>
-                <a-asset-item id="model4" src="./model4_Lotok_gluhoy100.glb?v=1"></a-asset-item>
-                <a-asset-item id="model5" src="./model5_Lotok_gluhoy150.glb?v=1"></a-asset-item>
-                <a-asset-item id="model6" src="./model6_Lotok_perf50.glb?v=1"></a-asset-item>
-                <a-asset-item id="model7" src="./model7_Lotok_perf65.glb?v=1"></a-asset-item>
-                <a-asset-item id="model8" src="./model8_Lotok_perf80.glb?v=1"></a-asset-item>
-                <a-asset-item id="model9" src="./model9_Lotok_perf100.glb?v=1"></a-asset-item>
-                <a-asset-item id="model10" src="./model10_Lotok_perf150.glb?v=1"></a-asset-item>
-                
-            </a-assets>
+  <div class="status" id="status">Старт — ждём камеру</div>
+  <div class="hint">Наведи камеру на маркер (targetIndex: 0). Если модель не видна — проверь пути и консоль.</div>
 
-            <!-- Lighting Setup - Removed target attributes for multiple markers -->
-            <a-light type="ambient" color="#FFF" intensity="2.5"></a-light>
-            <a-light type="directional" color="#FFF" intensity="2" position="2 5 3"></a-light>
-            <a-light type="directional" color="#fff" intensity="1" position="-3 2 -2"></a-light>
-            <a-light type="directional" color="#fff" intensity="1" position="0 3 -4"></a-light>
+  <a-scene id="scene"
+    mindar-image="imageTargetSrc: ./targetsSTR.mind; uiLoading: no; uiScanning: no; uiError: no; autoStart: false;"
+    embedded
+    color-space="sRGB"
+    renderer="colorManagement: true; physicallyCorrectLights: true"
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false">
 
-            <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+    <a-assets>
+      <!-- Заменяй src на имя своей модели (в той же папке), или оставь своё -->
+      <a-asset-item id="testModel" src="./model1_Lotok_gluhoy50.glb"></a-asset-item>
+    </a-assets>
 
-            <a-entity mindar-image-target="targetIndex: 0">
-                <a-gltf-model src="#model1" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
-            </a-entity>
+    <!-- простое освещение -->
+    <a-light type="ambient" intensity="1.2"></a-light>
+    <a-light type="directional" intensity="1.5" position="2 4 2"></a-light>
 
-            <a-entity mindar-image-target="targetIndex: 1">
-                <a-gltf-model src="#model2" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
-            </a-entity>
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-            <a-entity mindar-image-target="targetIndex: 2">
-                <a-gltf-model src="#model3" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
-            </a-entity>
+    <!-- единственный маркер + wrapper + модель -->
+    <a-entity mindar-image-target="targetIndex: 0">
+      <a-entity smooth-transform="lerpFactor: 0.08">
+        <a-gltf-model id="theModel" src="#testModel"
+                      position="0 0 0"
+                      rotation="0 0 0"
+                      scale="0.25 0.25 0.25"
+                      smooth-rotation="speed:0.006">
+        </a-gltf-model>
+      </a-entity>
+    </a-entity>
 
-            <a-entity mindar-image-target="targetIndex: 3">
-                <a-gltf-model src="#model4" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
-            </a-entity>
+  </a-scene>
 
-            <a-entity mindar-image-target="targetIndex: 4">
-                <a-gltf-model src="#model5" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
-            </a-entity>
+  <script>
+    // логируем загрузку модели и контролируем AR старт
+    (function(){
+      const status = document.getElementById('status');
+      const scene = document.querySelector('a-scene');
+      const model = document.getElementById('theModel');
 
-            <a-entity mindar-image-target="targetIndex: 5">
-                <a-gltf-model src="#model6" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
-            </a-entity>
-
-            <a-entity mindar-image-target="targetIndex: 6">
-                <a-gltf-model src="#model7" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
-            </a-entity>
-
-            <a-entity mindar-image-target="targetIndex: 7">
-                <a-gltf-model src="#model8" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
-            </a-entity>
-
-            <a-entity mindar-image-target="targetIndex: 8">
-                <a-gltf-model src="#model9" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
-            </a-entity>
-
-            <a-entity mindar-image-target="targetIndex: 9">
-                <a-gltf-model src="#model10" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
-            </a-entity>
-        </a-scene>
-    </div>
-    
-    <div class="status" id="status">Point camera at marker</div>
-    <div class="loading" id="loading">Loading AR...</div>
-    <div class="marker-info" id="markerInfo">Detected marker: None</div>
-
-    <script>
-    // Register the smooth rotation component
-    AFRAME.registerComponent('smooth-rotation', {
-        schema: {
-            speed: {type: 'number', default: 0.001}
-        },
-        
-        tick: function (time, timeDelta) {
-            // Smooth rotation without resetting
-            this.el.object3D.rotation.y += this.data.speed * (timeDelta / 16);
-        }
-    });
-
-    document.addEventListener('DOMContentLoaded', function() {
-        const status = document.getElementById('status');
-        const loading = document.getElementById('loading');
-        const sceneEl = document.querySelector('a-scene');
-        
-        // First request camera permission only
-        async function initAR() {
-            try {
-                loading.style.display = 'block';
-                status.textContent = 'Requesting camera access...';
-                
-                // Request camera access first
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                
-                // Stop the camera stream (MindAR will restart it)
-                stream.getTracks().forEach(track => track.stop());
-                
-                // Now start AR
-                startAR();
-            } catch (error) {
-                console.error('Camera permission error:', error);
-                status.textContent = 'Please allow camera access for AR';
-                loading.style.display = 'none';
-            }
-        }
-        
-        function startAR() {
-            status.textContent = 'Loading AR...';
-            
-            // Get the AR system
-            const arSystem = sceneEl.systems["mindar-image-system"];
-            
-            // Event handlers
-            sceneEl.addEventListener('arReady', function() {
-                status.textContent = 'Point camera at marker';
-                loading.style.display = 'none';
-            });
-            
-            sceneEl.addEventListener('arError', function(evt) {
-                console.error('AR Error:', evt.detail);
-                status.textContent = 'AR failed to load';
-                loading.style.display = 'none';
-            });
-            
-            // Start AR system
-            arSystem.start();
-            
-            // Handle marker detection
-            const markers = document.querySelectorAll('[mindar-image-target]');
-            
-            markers.forEach((marker, index) => {
-                marker.addEventListener('targetFound', function() {
-                    status.textContent = 'Marker ' + index + ' detected';
-                });
-                
-                marker.addEventListener('targetLost', function() {
-                    status.textContent = 'Point camera at marker';
-                });
-            });
-        }
-        
-        // Start the initialization process
-        setTimeout(initAR, 500);
-        
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            if (sceneEl.renderer) {
-                sceneEl.renderer.setSize(window.innerWidth, window.innerHeight);
-            }
+      if (model) {
+        model.addEventListener('model-loaded', () => {
+          console.log('MODEL LOADED OK');
+          status.textContent = 'Модель загружена. Ждём камеру...';
         });
-    });
-    </script>
+        model.addEventListener('model-error', (e) => {
+          console.error('MODEL LOAD ERROR', e);
+          status.textContent = 'Ошибка загрузки модели (см. консоль)';
+        });
+      }
+
+      async function initAR(){
+        try {
+          status.textContent = 'Запрос камеры...';
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          stream.getTracks().forEach(t=>t.stop());
+          startAR();
+        } catch(err) {
+          console.error('Camera permission error', err);
+          status.textContent = 'Разреши доступ к камере';
+        }
+      }
+      function startAR(){
+        status.textContent = 'Запуск AR...';
+        const arSystem = scene.systems['mindar-image-system'];
+        scene.addEventListener('arReady', ()=> status.textContent = 'Point camera at marker');
+        scene.addEventListener('arError', (ev)=> { console.error('AR error', ev); status.textContent='AR failed'; });
+        arSystem.start();
+      }
+
+      // стартуем
+      setTimeout(initAR, 400);
+    })();
+  </script>
 </body>
 </html>
+
 
 
 
