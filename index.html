@@ -141,17 +141,22 @@
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 7">
-                <a-gltf-model src="#model8" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006" smooth-transform="lerpFactor: 0.15"></a-gltf-model>
-            </a-entity>
+  <a-entity smooth-transform="lerpFactor: 0.15; positionOnly: true">
+    <a-gltf-model src="#model1" position="0 0 0" scale="0.5 0.5 0.5" 
+                  auto-rotate="speed: 0.006; axis: y"></a-gltf-model>
+  </a-entity>
+</a-entity>
 
             <a-entity mindar-image-target="targetIndex: 8">
-                <a-gltf-model src="#model9" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006" smooth-transform="lerpFactor: 0.15"></a-gltf-model>
-            </a-entity>
+  <a-entity smooth-transform="lerpFactor: 0.12">
+    <a-gltf-model src="#model2" position="0 0 0" scale="0.5 0.5 0.5"></a-gltf-model>
+  </a-entity>
+</a-entity>
 
             <a-entity mindar-image-target="targetIndex: 9">
-                <a-entity smooth-transform="lerpFactor: 0.12">
-    <a-box position="0 0.2 0" color="#00D1FF" depth="0.3" width="0.3" height="0.3"
-           animation="property: rotation; to: 0 360 0; loop: true; dur: 4000"></a-box>
+  <a-entity smooth-transform="lerpFactor: 0.15; positionOnly: true">
+    <a-gltf-model src="#model1" position="0 0 0" scale="0.5 0.5 0.5" 
+                  auto-rotate="speed: 0.006; axis: y"></a-gltf-model>
   </a-entity>
 </a-entity>
         </a-scene>
@@ -162,38 +167,87 @@
     <div class="marker-info" id="markerInfo">Detected marker: None</div>
 
     <script>
-    // Register the smooth rotation component
         AFRAME.registerComponent('smooth-transform', {
   schema: {
-    lerpFactor: {type: 'number', default: 0.2} // 0.1 = сильное сглаживание, 1 = без сглаживания
+    lerpFactor: { type: 'number', default: 0.15 },
+    positionOnly: { type: 'boolean', default: false } // Option to smooth only position
   },
+  
   init: function () {
-    this.targetPosition = new THREE.Vector3();
-    this.targetQuaternion = new THREE.Quaternion();
+    const THREE = AFRAME.THREE;
+    
+    // Store smoothed values
+    this.smoothedPosition = new THREE.Vector3();
+    this.smoothedQuaternion = new THREE.Quaternion();
+    this.smoothedScale = new THREE.Vector3();
+    
+    // Get the mindar target parent
+    this.targetEntity = this.findMindarTargetParent(this.el);
+    
+    if (this.targetEntity) {
+      // Initialize with current values
+      this.smoothedPosition.copy(this.el.object3D.position);
+      this.smoothedQuaternion.copy(this.el.object3D.quaternion);
+      this.smoothedScale.copy(this.el.object3D.scale);
+      
+      this.targetEntity.addEventListener('targetFound', () => {
+        // Reset smoothing when target is found
+        this.smoothedPosition.copy(this.el.object3D.position);
+        this.smoothedQuaternion.copy(this.el.object3D.quaternion);
+      });
+    }
   },
-  tick: function () {
+  
+  findMindarTargetParent: function(entity) {
+    // Traverse up to find the entity with mindar-image-target
+    while (entity && !entity.hasAttribute('mindar-image-target')) {
+      if (entity.parentEl) {
+        entity = entity.parentEl;
+      } else {
+        return null;
+      }
+    }
+    return entity;
+  },
+  
+  tick: function (time, timeDelta) {
+    if (!this.targetEntity) return;
+    
     const obj = this.el.object3D;
-
-    // обновляем целевые значения
-    this.targetPosition.copy(obj.position);
-    this.targetQuaternion.copy(obj.quaternion);
-
-    // применяем плавное приближение
-    obj.position.lerp(this.targetPosition, this.data.lerpFactor);
-    obj.quaternion.slerp(this.targetQuaternion, this.data.lerpFactor);
+    const lerpFactor = Math.min(this.data.lerpFactor * (timeDelta / 16), 1);
+    
+    // Smooth position
+    this.smoothedPosition.lerp(obj.position, lerpFactor);
+    obj.position.copy(this.smoothedPosition);
+    
+    if (!this.data.positionOnly) {
+      // Smooth rotation
+      this.smoothedQuaternion.slerp(obj.quaternion, lerpFactor);
+      obj.quaternion.copy(this.smoothedQuaternion);
+      
+      // Smooth scale (optional)
+      this.smoothedScale.lerp(obj.scale, lerpFactor);
+      obj.scale.copy(this.smoothedScale);
+    }
   }
 });
-    AFRAME.registerComponent('smooth-rotation', {
-        schema: {
-            speed: {type: 'number', default: 0.001}
-        },
-        
-        tick: function (time, timeDelta) {
-            // Smooth rotation without resetting
-            this.el.object3D.rotation.y += this.data.speed * (timeDelta / 16);
-        }
-    });
 
+// Remove the smooth-rotation component entirely and use this instead:
+AFRAME.registerComponent('auto-rotate', {
+  schema: {
+    speed: { type: 'number', default: 0.001 },
+    axis: { type: 'string', default: 'y' } // 'x', 'y', 'z'
+  },
+  
+  tick: function (time, timeDelta) {
+    const axisMap = { x: 0, y: 1, z: 2 };
+    const axisIndex = axisMap[this.data.axis] || 1;
+    
+    // Apply rotation relative to current smoothed rotation
+    this.el.object3D.rotation[this.data.axis] += this.data.speed * (timeDelta / 16);
+  }
+});
+    
     document.addEventListener('DOMContentLoaded', function() {
         const status = document.getElementById('status');
         const loading = document.getElementById('loading');
@@ -268,6 +322,7 @@
     </script>
 </body>
 </html>
+
 
 
 
