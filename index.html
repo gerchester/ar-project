@@ -140,21 +140,16 @@
                 <a-gltf-model src="#model7" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006" smooth-transform="lerpFactor: 0.15"></a-gltf-model>
             </a-entity>
 
-           <a-entity mindar-image-target="targetIndex: 7">
-  <a-entity smooth-transform="lerpFactor: 0.12">
-    <a-box position="0 0.2 0" color="#00D1FF" depth="0.3" width="0.3" height="0.3"
-           smooth-rotation="speed: 0.006"></a-box>
-  </a-entity>
-</a-entity>
+            <a-entity mindar-image-target="targetIndex: 7">
+                <a-gltf-model src="#model8" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006" smooth-transform="lerpFactor: 0.15"></a-gltf-model>
+            </a-entity>
 
-           <a-entity mindar-image-target="targetIndex: 8">
-  <a-entity smooth-transform="lerpFactor: 0.12">
-     <a-gltf-model src="#model7" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" animation="property: rotation; to: 0 360 0; loop: true; dur: 4000" smooth-transform="lerpFactor: 0.15"></a-gltf-model>
-  </a-entity>
-</a-entity>
+            <a-entity mindar-image-target="targetIndex: 8">
+                <a-gltf-model src="#model9" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 0 0" smooth-rotation="speed: 0.006" smooth-transform="lerpFactor: 0.15"></a-gltf-model>
+            </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 9">
-  <a-entity smooth-transform="lerpFactor: 0.12">
+                <a-entity smooth-transform="lerpFactor: 0.12">
     <a-box position="0 0.2 0" color="#00D1FF" depth="0.3" width="0.3" height="0.3"
            animation="property: rotation; to: 0 360 0; loop: true; dur: 4000"></a-box>
   </a-entity>
@@ -167,50 +162,27 @@
     <div class="marker-info" id="markerInfo">Detected marker: None</div>
 
     <script>
-    
-AFRAME.registerComponent('smooth-transform', {
+    // Register the smooth rotation component
+        AFRAME.registerComponent('smooth-transform', {
   schema: {
-    lerpFactor: { type: 'number', default: 0.12 } // 0.05 = очень плавно (большая задержка), 0.3 = быстрее (меньше сглаживания)
+    lerpFactor: {type: 'number', default: 0.2} // 0.1 = сильное сглаживание, 1 = без сглаживания
   },
   init: function () {
-    const THREE = AFRAME.THREE;
-    const obj = this.el.object3D;
-
-    // См.ниже — мы храним "сглаженное" состояние и будем интерполировать к сырому.
-    this.smoothedPos = new THREE.Vector3().copy(obj.position);
-    this.smoothedQuat = new THREE.Quaternion().copy(obj.quaternion);
-
-    // Найдём родителя с mindar-image-target (если есть) и сбрасываем сглаживание при появлении трека
-    let target = this.el;
-    while (target && !target.hasAttribute('mindar-image-target')) target = target.parentEl;
-    if (target) {
-      target.addEventListener('targetFound', () => {
-        // при первом нахождении — моментально подгоняем сглаженную позицию к текущей,
-        // чтобы не было резкого "скачка" в момент детекта
-        this.smoothedPos.copy(this.el.object3D.position);
-        this.smoothedQuat.copy(this.el.object3D.quaternion);
-      });
-      target.addEventListener('targetLost', () => {
-        // опция: можно обнулять или оставлять текущее сглаженное состояние
-      });
-    }
+    this.targetPosition = new THREE.Vector3();
+    this.targetQuaternion = new THREE.Quaternion();
   },
-  tick: function (time, timeDelta) {
+  tick: function () {
     const obj = this.el.object3D;
-    // raw = текущее (необработанное) transform, которое генерит трекер
-    const rawPos = obj.position;
-    const rawQuat = obj.quaternion;
 
-    // интерполируем внутренние значения к raw
-    this.smoothedPos.lerp(rawPos, this.data.lerpFactor);
-    this.smoothedQuat.slerp(rawQuat, this.data.lerpFactor);
+    // обновляем целевые значения
+    this.targetPosition.copy(obj.position);
+    this.targetQuaternion.copy(obj.quaternion);
 
-    // применяем сглаженное состояние обратно на объект
-    obj.position.copy(this.smoothedPos);
-    obj.quaternion.copy(this.smoothedQuat);
+    // применяем плавное приближение
+    obj.position.lerp(this.targetPosition, this.data.lerpFactor);
+    obj.quaternion.slerp(this.targetQuaternion, this.data.lerpFactor);
   }
 });
-
     AFRAME.registerComponent('smooth-rotation', {
         schema: {
             speed: {type: 'number', default: 0.001}
@@ -296,6 +268,10 @@ AFRAME.registerComponent('smooth-transform', {
     </script>
 </body>
 </html>
+
+
+
+
 
 
 
