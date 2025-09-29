@@ -86,93 +86,7 @@
             }
         });
 
-        AFRAME.registerComponent('advanced-delayed-smooth', {
-            schema: {
-                bufferSize: { type: 'int', default: 5 },
-                prediction: { type: 'number', default: 0.1 },
-                maxSpeed: { type: 'number', default: 0.5 }
-            },
-            
-            init: function() {
-                this.posBuffer = [];
-                this.quatBuffer = [];
-                this.lastPosition = new THREE.Vector3();
-                this.velocity = new THREE.Vector3();
-                this.isTracking = false;
-                
-                this.targetEntity = this.findMindarTargetParent(this.el);
-                
-                if (this.targetEntity) {
-                    this.targetEntity.addEventListener('targetFound', () => {
-                        this.isTracking = true;
-                        this.posBuffer = [];
-                        this.quatBuffer = [];
-                        this.velocity.set(0, 0, 0);
-                        // Initialize lastPosition when target is found
-                        this.lastPosition.copy(this.el.object3D.position);
-                    });
-                    
-                    this.targetEntity.addEventListener('targetLost', () => {
-                        this.isTracking = false;
-                    });
-                }
-            },
-            
-            findMindarTargetParent: function(entity) {
-                while (entity && !entity.hasAttribute('mindar-image-target')) {
-                    if (entity.parentEl) {
-                        entity = entity.parentEl;
-                    } else {
-                        return null;
-                    }
-                }
-                return entity;
-            },
-            
-            tick: function(time, delta) {
-                if (!this.isTracking || !delta) return;
-                
-                const target = this.el.object3D;
-                const deltaTime = Math.min(delta / 1000, 0.1);
-                
-                // Calculate velocity BEFORE updating lastPosition
-                this.velocity.subVectors(target.position, this.lastPosition).divideScalar(deltaTime);
-                this.lastPosition.copy(target.position);
-                
-                // Clamp velocity
-                if (this.velocity.length() > this.data.maxSpeed) {
-                    this.velocity.normalize().multiplyScalar(this.data.maxSpeed);
-                }
-                
-                // Add current data to buffers
-                this.posBuffer.push(target.position.clone());
-                this.quatBuffer.push(target.quaternion.clone());
-                
-                // Maintain buffer size
-                if (this.posBuffer.length > this.data.bufferSize) this.posBuffer.shift();
-                if (this.quatBuffer.length > this.data.bufferSize) this.quatBuffer.shift();
-                
-                if (this.posBuffer.length < this.data.bufferSize) return;
-                
-                // Calculate averages
-                const avgPos = new THREE.Vector3();
-                this.posBuffer.forEach(pos => avgPos.add(pos));
-                avgPos.divideScalar(this.posBuffer.length);
-                
-                let avgQuat = this.quatBuffer[0].clone();
-                for (let i = 1; i < this.quatBuffer.length; i++) {
-                    avgQuat.slerp(this.quatBuffer[i], 1 / (i + 1));
-                }
-                
-                // Apply prediction to compensate for delay
-                const predictedPos = avgPos.clone().add(
-                    this.velocity.clone().multiplyScalar(this.data.prediction * deltaTime)
-                );
-                
-                target.position.copy(predictedPos);
-                target.quaternion.copy(avgQuat);
-            }
-        });
+        
 </script>
     <style>
         * {
@@ -330,17 +244,7 @@
     <div class="marker-info" id="markerInfo">Detected marker: None</div>
 
     <script>
-    // Only keep smooth-rotation for markers that DON'T use smoothing
-        AFRAME.registerComponent('smooth-rotation', {
-            schema: {
-                speed: {type: 'number', default: 0.001}
-            },
-            
-            tick: function (time, timeDelta) {
-                this.el.object3D.rotation.y += this.data.speed * (timeDelta / 16);
-            }
-        });
-
+    
         // Your existing initialization code remains the same
         document.addEventListener('DOMContentLoaded', function() {
 
@@ -418,6 +322,7 @@
     </script>
 </body>
 </html>
+
 
 
 
