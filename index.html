@@ -6,6 +6,65 @@
     <title>WebAR Multiple Marker Tracking</title>
     <script src="./aframe.min.js"></script>
     <script src="./mindar-image-aframe.prod.js"></script>
+    <script>
+class KalmanFilter1D {
+  constructor({ R = 0.01, Q = 3 } = {}) {
+    this.R = R; // шум измерений
+    this.Q = Q; // шум процесса
+    this.A = 1; // модель перехода
+    this.B = 0;
+    this.C = 1;
+    this.cov = NaN;
+    this.x = NaN;
+  }
+  filter(z) {
+    if (isNaN(this.x)) {
+      this.x = (1 / this.C) * z;
+      this.cov = (1 / this.C) * this.Q * (1 / this.C);
+    } else {
+      // prediction
+      const predX = this.A * this.x;
+      const predCov = this.A * this.cov * this.A + this.Q;
+      // Kalman gain
+      const K = predCov * this.C * (1 / (this.C * predCov * this.C + this.R));
+      // correction
+      this.x = predX + K * (z - this.C * predX);
+      this.cov = predCov - K * this.C * predCov;
+    }
+    return this.x;
+  }
+}
+
+AFRAME.registerComponent('smooth-kalman', {
+  init: function () {
+    this.kx = new KalmanFilter1D();
+    this.ky = new KalmanFilter1D();
+    this.kz = new KalmanFilter1D();
+    this.kqx = new KalmanFilter1D();
+    this.kqy = new KalmanFilter1D();
+    this.kqz = new KalmanFilter1D();
+    this.kqw = new KalmanFilter1D();
+  },
+  tick: function () {
+    const obj = this.el.object3D;
+
+    // фильтрация позиции
+    obj.position.set(
+      this.kx.filter(obj.position.x),
+      this.ky.filter(obj.position.y),
+      this.kz.filter(obj.position.z)
+    );
+
+    // фильтрация поворота (кватернион)
+    obj.quaternion.set(
+      this.kqx.filter(obj.quaternion.x),
+      this.kqy.filter(obj.quaternion.y),
+      this.kqz.filter(obj.quaternion.z),
+      this.kqw.filter(obj.quaternion.w)
+    );
+  }
+});
+</script>
     <style>
         * {
             margin: 0;
@@ -119,63 +178,62 @@
             <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
             <a-entity mindar-image-target="targetIndex: 0">
-                <a-gltf-model src="#model1" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
+                <a-gltf-model src="#model1" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-kalman></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 1">
-                <a-gltf-model src="#model2" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
+                <a-gltf-model src="#model2" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-kalman></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 2">
-                <a-gltf-model src="#model3" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
+                <a-gltf-model src="#model3" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-kalman></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 3">
-                <a-gltf-model src="#model4" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
+                <a-gltf-model src="#model4" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-kalman></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 4">
-                <a-gltf-model src="#model5" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
+                <a-gltf-model src="#model5" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-kalman></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 5">
-                <a-gltf-model src="#model6" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
+                <a-gltf-model src="#model6" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-kalman></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 6">
-                <a-gltf-model src="#model7" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
+                <a-gltf-model src="#model7" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-kalman></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 7">
-                <a-gltf-model src="#model8" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
+                <a-gltf-model src="#model8" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-kalman></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 8">
-                <a-gltf-model src="#model9" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
+                <a-gltf-model src="#model9" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-kalman></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 9">
-                <a-gltf-model src="#model10" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
+                <a-gltf-model src="#model10" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-kalman></a-gltf-model>
             </a-entity>
             
             <a-entity mindar-image-target="targetIndex: 10">
-                <a-gltf-model src="#model11" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
+                <a-gltf-model src="#model11" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-kalman></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 11">
-                <a-gltf-model src="#model12" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
+                <a-gltf-model src="#model12" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-kalman></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 12">
-                <a-gltf-model src="#model13" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
-            </a-entity>
+                <a-gltf-model src="#model13" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-kalman></a-gltf-model>
 
             <a-entity mindar-image-target="targetIndex: 13">
-                <a-gltf-model src="#model14" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
+                <a-gltf-model src="#model14" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-kalman></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 14">
-                <a-gltf-model src="#model15" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
+                <a-gltf-model src="#model15" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-kalman></a-gltf-model>
             </a-entity>
         </a-scene>
     </div>
@@ -185,17 +243,7 @@
     <div class="marker-info" id="markerInfo">Detected marker: None</div>
 
     <script>
-    // Register the smooth rotation component
-    AFRAME.registerComponent('smooth-rotation', {
-        schema: {
-            speed: {type: 'number', default: 0.001}
-        },
-        
-        tick: function (time, timeDelta) {
-            // Smooth rotation without resetting
-            this.el.object3D.rotation.y += this.data.speed * (timeDelta / 16);
-        }
-    });
+ 
 
     document.addEventListener('DOMContentLoaded', function() {
         const status = document.getElementById('status');
@@ -271,6 +319,7 @@
     </script>
 </body>
 </html>
+
 
 
 
