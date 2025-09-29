@@ -193,7 +193,7 @@
         
         tick: function (time, timeDelta) {
             // Smooth rotation without resetting
-            this.el.object3D.rotation.y += this.data.speed * (timeDelta / 16);
+            this.el.object3D.rotation.z += this.data.speed * (timeDelta / 16);
         }
     });
 
@@ -271,6 +271,7 @@
     </script>
 </body>
 </html>
+
 
 
 
