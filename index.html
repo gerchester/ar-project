@@ -7,173 +7,34 @@
     <script src="./aframe.min.js"></script>
     <script src="./mindar-image-aframe.prod.js"></script>
     <script>
-        // Register both smoothing components
-        AFRAME.registerComponent('delayed-smooth', {
-            schema: {
-                bufferSize: { type: 'int', default: 5 },
-                positionLerp: { type: 'number', default: 1.0 },
-                rotationLerp: { type: 'number', default: 1.0 }
-            },
-            
-            init: function() {
-                this.posBuffer = [];
-                this.quatBuffer = [];
-                this.isTracking = false;
-                
-                this.targetEntity = this.findMindarTargetParent(this.el);
-                
-                if (this.targetEntity) {
-                    this.targetEntity.addEventListener('targetFound', () => {
-                        this.isTracking = true;
-                        this.posBuffer = [];
-                        this.quatBuffer = [];
-                    });
-                    
-                    this.targetEntity.addEventListener('targetLost', () => {
-                        this.isTracking = false;
-                    });
-                }
-            },
-            
-            findMindarTargetParent: function(entity) {
-                while (entity && !entity.hasAttribute('mindar-image-target')) {
-                    if (entity.parentEl) {
-                        entity = entity.parentEl;
-                    } else {
-                        return null;
-                    }
-                }
-                return entity;
-            },
-            
-            tick: function() {
-                if (!this.isTracking) return;
-                
-                const target = this.el.object3D;
-                
-                // Add current frame data to buffers
-                this.posBuffer.push(target.position.clone());
-                this.quatBuffer.push(target.quaternion.clone());
-                
-                // Maintain buffer size
-                if (this.posBuffer.length > this.data.bufferSize) this.posBuffer.shift();
-                if (this.quatBuffer.length > this.data.bufferSize) this.quatBuffer.shift();
-                
-                if (this.posBuffer.length < this.data.bufferSize) return;
-                
-                // Calculate average position
-                const avgPos = new THREE.Vector3();
-                this.posBuffer.forEach(pos => avgPos.add(pos));
-                avgPos.divideScalar(this.posBuffer.length);
-                
-                // Calculate average rotation (sequential slerp)
-                let avgQuat = this.quatBuffer[0].clone();
-                for (let i = 1; i < this.quatBuffer.length; i++) {
-                    avgQuat.slerp(this.quatBuffer[i], 1 / (i + 1));
-                }
-                
-                // Apply with optional additional lerping for extra smoothness
-                if (this.data.positionLerp < 1.0) {
-                    target.position.lerp(avgPos, this.data.positionLerp);
-                } else {
-                    target.position.copy(avgPos);
-                }
-                
-                if (this.data.rotationLerp < 1.0) {
-                    target.quaternion.slerp(avgQuat, this.data.rotationLerp);
-                } else {
-                    target.quaternion.copy(avgQuat);
-                }
-            }
-        });
-
-        AFRAME.registerComponent('advanced-delayed-smooth', {
-            schema: {
-                bufferSize: { type: 'int', default: 5 },
-                prediction: { type: 'number', default: 0.1 },
-                maxSpeed: { type: 'number', default: 0.5 }
-            },
-            
-            init: function() {
-                this.posBuffer = [];
-                this.quatBuffer = [];
-                this.lastPosition = new THREE.Vector3();
-                this.velocity = new THREE.Vector3();
-                this.isTracking = false;
-                
-                this.targetEntity = this.findMindarTargetParent(this.el);
-                
-                if (this.targetEntity) {
-                    this.targetEntity.addEventListener('targetFound', () => {
-                        this.isTracking = true;
-                        this.posBuffer = [];
-                        this.quatBuffer = [];
-                        this.velocity.set(0, 0, 0);
-                        // Initialize lastPosition when target is found
-                        this.lastPosition.copy(this.el.object3D.position);
-                    });
-                    
-                    this.targetEntity.addEventListener('targetLost', () => {
-                        this.isTracking = false;
-                    });
-                }
-            },
-            
-            findMindarTargetParent: function(entity) {
-                while (entity && !entity.hasAttribute('mindar-image-target')) {
-                    if (entity.parentEl) {
-                        entity = entity.parentEl;
-                    } else {
-                        return null;
-                    }
-                }
-                return entity;
-            },
-            
-            tick: function(time, delta) {
-                if (!this.isTracking || !delta) return;
-                
-                const target = this.el.object3D;
-                const deltaTime = Math.min(delta / 1000, 0.1);
-                
-                // Calculate velocity BEFORE updating lastPosition
-                this.velocity.subVectors(target.position, this.lastPosition).divideScalar(deltaTime);
-                this.lastPosition.copy(target.position);
-                
-                // Clamp velocity
-                if (this.velocity.length() > this.data.maxSpeed) {
-                    this.velocity.normalize().multiplyScalar(this.data.maxSpeed);
-                }
-                
-                // Add current data to buffers
-                this.posBuffer.push(target.position.clone());
-                this.quatBuffer.push(target.quaternion.clone());
-                
-                // Maintain buffer size
-                if (this.posBuffer.length > this.data.bufferSize) this.posBuffer.shift();
-                if (this.quatBuffer.length > this.data.bufferSize) this.quatBuffer.shift();
-                
-                if (this.posBuffer.length < this.data.bufferSize) return;
-                
-                // Calculate averages
-                const avgPos = new THREE.Vector3();
-                this.posBuffer.forEach(pos => avgPos.add(pos));
-                avgPos.divideScalar(this.posBuffer.length);
-                
-                let avgQuat = this.quatBuffer[0].clone();
-                for (let i = 1; i < this.quatBuffer.length; i++) {
-                    avgQuat.slerp(this.quatBuffer[i], 1 / (i + 1));
-                }
-                
-                // Apply prediction to compensate for delay
-                const predictedPos = avgPos.clone().add(
-                    this.velocity.clone().multiplyScalar(this.data.prediction * deltaTime)
-                );
-                
-                target.position.copy(predictedPos);
-                target.quaternion.copy(avgQuat);
-            }
-        });
+       AFRAME.registerComponent('simple-smooth', {
+  schema: {
+    lerpFactor: { default: 0.15 }
+  },
+  init: function() {
+    this.smoothedPos = new THREE.Vector3().copy(this.el.object3D.position);
+    this.smoothedQuat = new THREE.Quaternion().copy(this.el.object3D.quaternion);
+    
+    let targetEntity = this.findMindarTargetParent(this.el);
+    if (targetEntity) {
+      targetEntity.addEventListener('targetFound', () => {
+        this.smoothedPos.copy(this.el.object3D.position);
+        this.smoothedQuat.copy(this.el.object3D.quaternion);
+      });
+    }
+  },
+  tick: function() {
+    const rawPos = this.el.object3D.position;
+    const rawQuat = this.el.object3D.quaternion;
+    
+    this.smoothedPos.lerp(rawPos, this.data.lerpFactor);
+    this.smoothedQuat.slerp(rawQuat, this.data.lerpFactor);
+    
+    this.el.object3D.position.copy(this.smoothedPos);
+    this.el.object3D.quaternion.copy(this.smoothedQuat);
+  }
+});
+         
     </script>
     <style>
         /* Your existing styles remain the same */
@@ -228,14 +89,13 @@
             <!-- Remove smooth-rotation from all markers that use smoothing -->
             
             <a-entity mindar-image-target="targetIndex: 0">
-                <a-entity delayed-smooth="bufferSize: 8">
-                    <a-gltf-model src="#model1" position="0 0 0" scale="0.5 0.5 0.5"></a-gltf-model>
+                    <a-gltf-model src="#model1" position="0 0 0" scale="0.5 0.5 0.5" simple-smooth></a-gltf-model>
                 </a-entity>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 1">
-                <a-entity advanced-delayed-smooth="bufferSize: 6; prediction: 0.2; maxSpeed: 1.0">
-                    <a-gltf-model src="#model2" position="0 0 0" scale="0.5 0.5 0.5"></a-gltf-model>
+                <
+                    <a-gltf-model src="#model2" position="0 0 0" scale="0.5 0.5 0.5" simple-smooth ></a-gltf-model>
                 </a-entity>
             </a-entity>
 
@@ -270,15 +130,7 @@
 
     <script>
         // Only keep smooth-rotation for markers that DON'T use smoothing
-        AFRAME.registerComponent('smooth-rotation', {
-            schema: {
-                speed: {type: 'number', default: 0.001}
-            },
-            
-            tick: function (time, timeDelta) {
-                this.el.object3D.rotation.y += this.data.speed * (timeDelta / 16);
-            }
-        });
+      
 
         // Your existing initialization code remains the same
          document.addEventListener('DOMContentLoaded', function() {
@@ -363,6 +215,7 @@
 
         
       
+
 
 
 
