@@ -7,36 +7,87 @@
     <script src="./aframe.min.js"></script>
     <script src="./mindar-image-aframe.prod.js"></script>
     <script>
-  const bufferSize = 5;
-  let posBuffer = [];
-  let quatBuffer = [];
-
-  AFRAME.registerComponent('delayed-smooth', {
-    tick: function () {
-      const target = this.el.object3D;
-
-      // пушим новые значения
-      posBuffer.push(target.position.clone());
-      quatBuffer.push(target.quaternion.clone());
-
-      if (posBuffer.length > bufferSize) posBuffer.shift();
-      if (quatBuffer.length > bufferSize) quatBuffer.shift();
-
-      // усредняем
-      let avgPos = new THREE.Vector3();
-      posBuffer.forEach(p => avgPos.add(p));
-      avgPos.divideScalar(posBuffer.length);
-
-      let avgQuat = quatBuffer[0].clone();
-      for (let i = 1; i < quatBuffer.length; i++) {
-        avgQuat.slerp(quatBuffer[i], 1 / (i + 1));
-      }
-
-      // применяем
-      target.position.copy(avgPos);
-      target.quaternion.copy(avgQuat);
+  AFRAME.registerComponent('advanced-delayed-smooth', {
+  schema: {
+    bufferSize: { type: 'int', default: 5 },
+    prediction: { type: 'number', default: 0.1 }, // Predict movement (0-1)
+    maxSpeed: { type: 'number', default: 0.5 } // Clamp maximum movement
+  },
+  
+  init: function() {
+    this.posBuffer = [];
+    this.quatBuffer = [];
+    this.lastPosition = new THREE.Vector3();
+    this.velocity = new THREE.Vector3();
+    this.isTracking = false;
+    
+    this.targetEntity = this.findMindarTargetParent(this.el);
+    
+    if (this.targetEntity) {
+      this.targetEntity.addEventListener('targetFound', () => {
+        this.isTracking = true;
+        this.posBuffer = [];
+        this.quatBuffer = [];
+        this.velocity.set(0, 0, 0);
+      });
+      
+      this.targetEntity.addEventListener('targetLost', () => {
+        this.isTracking = false;
+      });
     }
-  });
+  },
+  
+  findMindarTargetParent: function(entity) {
+    while (entity && !entity.hasAttribute('mindar-image-target')) {
+      entity = entity.parentEl;
+    }
+    return entity;
+  },
+  
+  tick: function(time, delta) {
+    if (!this.isTracking || !delta) return;
+    
+    const target = this.el.object3D;
+    const deltaTime = Math.min(delta / 1000, 0.1); // Cap delta time
+    
+    // Calculate velocity
+    this.velocity.subVectors(target.position, this.lastPosition).divideScalar(deltaTime);
+    this.lastPosition.copy(target.position);
+    
+    // Clamp velocity
+    if (this.velocity.length() > this.data.maxSpeed) {
+      this.velocity.normalize().multiplyScalar(this.data.maxSpeed);
+    }
+    
+    // Add current data to buffers
+    this.posBuffer.push(target.position.clone());
+    this.quatBuffer.push(target.quaternion.clone());
+    
+    // Maintain buffer size
+    if (this.posBuffer.length > this.data.bufferSize) this.posBuffer.shift();
+    if (this.quatBuffer.length > this.data.bufferSize) this.quatBuffer.shift();
+    
+    if (this.posBuffer.length < this.data.bufferSize) return;
+    
+    // Calculate averages
+    const avgPos = new THREE.Vector3();
+    this.posBuffer.forEach(pos => avgPos.add(pos));
+    avgPos.divideScalar(this.posBuffer.length);
+    
+    let avgQuat = this.quatBuffer[0].clone();
+    for (let i = 1; i < this.quatBuffer.length; i++) {
+      avgQuat.slerp(this.quatBuffer[i], 1 / (i + 1));
+    }
+    
+    // Apply prediction to compensate for delay
+    const predictedPos = avgPos.clone().add(
+      this.velocity.clone().multiplyScalar(this.data.prediction * deltaTime)
+    );
+    
+    target.position.copy(predictedPos);
+    target.quaternion.copy(avgQuat);
+  }
+});
 </script>
     <style>
         * {
@@ -150,18 +201,26 @@
 
             <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-            <a-entity mindar-image-target="targetIndex: 0">
-                <a-gltf-model src="#model1" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
-            </a-entity>
+            <!-- Basic delayed smoothing -->
+<a-entity mindar-image-target="targetIndex: 0">
+  <a-entity delayed-smooth="bufferSize: 8">
+    <a-gltf-model src="#model1" position="0 0 0" scale="0.5 0.5 0.5"></a-gltf-model>
+  </a-entity>
+</a-entity>
 
-            <a-entity mindar-image-target="targetIndex: 1">
-                <a-gltf-model src="#model2" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
-            </a-entity>
+<!-- Advanced with prediction -->
+<a-entity mindar-image-target="targetIndex: 1">
+  <a-entity advanced-delayed-smooth="bufferSize: 6; prediction: 0.2; maxSpeed: 1.0">
+    <a-gltf-model src="#model2" position="0 0 0" scale="0.5 0.5 0.5"></a-gltf-model>
+  </a-entity>
+</a-entity>
 
-            <a-entity mindar-image-target="targetIndex: 2">
-                <a-gltf-model src="#model3" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006" delayed-smooth></a-gltf-model>
-            </a-entity>
-
+<!-- Extra smooth with additional lerping -->
+<a-entity mindar-image-target="targetIndex: 2">
+  <a-entity delayed-smooth="bufferSize: 10; positionLerp: 0.3; rotationLerp: 0.5">
+    <a-gltf-model src="#model3" position="0 0 0" scale="0.5 0.5 0.5"></a-gltf-model>
+  </a-entity>
+</a-entity>
             <a-entity mindar-image-target="targetIndex: 3">
                 <a-gltf-model src="#model4" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006" delayed-smooth></a-gltf-model>
             </a-entity>
@@ -303,6 +362,7 @@
     </script>
 </body>
 </html>
+
 
 
 
