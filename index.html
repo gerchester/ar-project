@@ -6,44 +6,79 @@
     <title>WebAR Multiple Marker Tracking</title>
     <script src="./aframe.min.js"></script>
     <script src="./mindar-image-aframe.prod.js"></script>
-    <script>
-       AFRAME.registerComponent('simple-smooth', {
-  schema: {
-    lerpFactor: { default: 0.15 }
-  },
-  init: function() {
-    this.smoothedPos = new THREE.Vector3().copy(this.el.object3D.position);
-    this.smoothedQuat = new THREE.Quaternion().copy(this.el.object3D.quaternion);
-    
-    let targetEntity = this.findMindarTargetParent(this.el);
-    if (targetEntity) {
-      targetEntity.addEventListener('targetFound', () => {
-        this.smoothedPos.copy(this.el.object3D.position);
-        this.smoothedQuat.copy(this.el.object3D.quaternion);
-      });
-    }
-  },
-  tick: function() {
-    const rawPos = this.el.object3D.position;
-    const rawQuat = this.el.object3D.quaternion;
-    
-    this.smoothedPos.lerp(rawPos, this.data.lerpFactor);
-    this.smoothedQuat.slerp(rawQuat, this.data.lerpFactor);
-    
-    this.el.object3D.position.copy(this.smoothedPos);
-    this.el.object3D.quaternion.copy(this.smoothedQuat);
-  }
-});
-         
-    </script>
     <style>
-        /* Your existing styles remain the same */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #000;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        #ar-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .status {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            z-index: 100;
+            pointer-events: none;
+        }
+        
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            z-index: 15;
+            text-align: center;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        .marker-info {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 100;
+            text-align: center;
+            max-width: 80%;
+        }
     </style>
 </head>
 <body>
     <div id="ar-container">
         <a-scene 
             id="scene" 
+            
             mindar-image="imageTargetSrc: ./targetsSTRlestlot.mind; 
                          uiLoading: no; 
                          uiScanning: no; 
@@ -56,7 +91,6 @@
             embedded>
              
             <a-assets>
-               
                 
                 <a-asset-item id="model1" src="./models/model1_Lotok_gluhoy50.glb?v=1"></a-asset-item>
                 <a-asset-item id="model2" src="./models/model2_Lotok_gluhoy65.glb?v=1"></a-asset-item>
@@ -74,10 +108,9 @@
                 <a-asset-item id="model14" src="./models/model14_lestni_100.glb.glb?v=1"></a-asset-item>
                 <a-asset-item id="model15" src="./models/model15_lestni_150.glb.glb?v=1"></a-asset-item>
                 
-            
             </a-assets>
 
-            <!-- Lighting -->
+            <!-- Lighting Setup - Removed target attributes for multiple markers -->
             <a-light type="ambient" color="#FFF" intensity="2.5"></a-light>
             <a-light type="directional" color="#FFF" intensity="2" position="2 5 3"></a-light>
             <a-light type="directional" color="#fff" intensity="1" position="-3 2 -2"></a-light>
@@ -85,42 +118,65 @@
 
             <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-            <!-- Use consistent structure for ALL markers -->
-            <!-- Remove smooth-rotation from all markers that use smoothing -->
-            
             <a-entity mindar-image-target="targetIndex: 0">
-                    <a-gltf-model src="#model1" position="0 0 0" scale="0.5 0.5 0.5" simple-smooth></a-gltf-model>
-                </a-entity>
+                <a-gltf-model src="#model1" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 1">
-                <
-                    <a-gltf-model src="#model2" position="0 0 0" scale="0.5 0.5 0.5" simple-smooth ></a-gltf-model>
-                </a-entity>
+                <a-gltf-model src="#model2" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 2">
-                <a-entity delayed-smooth="bufferSize: 10; positionLerp: 0.3; rotationLerp: 0.5">
-                    <a-gltf-model src="#model3" position="0 0 0" scale="0.5 0.5 0.5"></a-gltf-model>
-                </a-entity>
+                <a-gltf-model src="#model3" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
             </a-entity>
 
-            <!-- For markers 3-14, use the same wrapper structure -->
             <a-entity mindar-image-target="targetIndex: 3">
-                <a-entity delayed-smooth="bufferSize: 8">
-                    <a-gltf-model src="#model4" position="0 0 0" scale="1.0 1.0 1.0"></a-gltf-model>
-                </a-entity>
+                <a-gltf-model src="#model4" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 4">
-                <a-entity delayed-smooth="bufferSize: 8">
-                    <a-gltf-model src="#model5" position="0 0 0" scale="1.0 1.0 1.0"></a-gltf-model>
-                </a-entity>
+                <a-gltf-model src="#model5" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
             </a-entity>
 
-            <!-- Continue this pattern for markers 5-14 -->
-            <!-- ... -->
+            <a-entity mindar-image-target="targetIndex: 5">
+                <a-gltf-model src="#model6" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
+            </a-entity>
 
+            <a-entity mindar-image-target="targetIndex: 6">
+                <a-gltf-model src="#model7" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
+            </a-entity>
+
+            <a-entity mindar-image-target="targetIndex: 7">
+                <a-gltf-model src="#model8" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
+            </a-entity>
+
+            <a-entity mindar-image-target="targetIndex: 8">
+                <a-gltf-model src="#model9" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
+            </a-entity>
+
+            <a-entity mindar-image-target="targetIndex: 9">
+                <a-gltf-model src="#model10" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
+            </a-entity>
+            
+            <a-entity mindar-image-target="targetIndex: 10">
+                <a-gltf-model src="#model11" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
+            </a-entity>
+
+            <a-entity mindar-image-target="targetIndex: 11">
+                <a-gltf-model src="#model12" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
+            </a-entity>
+
+            <a-entity mindar-image-target="targetIndex: 12">
+                <a-gltf-model src="#model13" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
+            </a-entity>
+
+            <a-entity mindar-image-target="targetIndex: 13">
+                <a-gltf-model src="#model14" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
+            </a-entity>
+
+            <a-entity mindar-image-target="targetIndex: 14">
+                <a-gltf-model src="#model15" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.006"></a-gltf-model>
+            </a-entity>
         </a-scene>
     </div>
     
@@ -129,11 +185,17 @@
     <div class="marker-info" id="markerInfo">Detected marker: None</div>
 
     <script>
-        // Only keep smooth-rotation for markers that DON'T use smoothing
-      
-
-        // Your existing initialization code remains the same
-         document.addEventListener('DOMContentLoaded', function() {
+    // Register the smooth rotation component
+    AFRAME.registerComponent('smooth-rotation', {
+        schema: {
+            speed: {type: 'number', default: 0.001}
+        },
+        
+        tick: function (time, timeDelta) {
+            // Smooth rotation without resetting
+            this.el.object3D.rotation.y += this.data.speed * (timeDelta / 16);
+        }
+    });
 
     document.addEventListener('DOMContentLoaded', function() {
         const status = document.getElementById('status');
@@ -209,39 +271,6 @@
     </script>
 </body>
 </html>
-
-             
-            
-
-        
-      
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
