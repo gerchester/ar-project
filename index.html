@@ -182,7 +182,7 @@
     
     <div class="status" id="status">Point camera at marker</div>
     <div class="loading" id="loading">Loading AR...</div>
-    <div class="marker-info" id="markerInfo">Detected marker: None</div>
+    <div class="marker-info" id="markerInfo"></div>
 
     <script>
     // Register the smooth rotation component
@@ -224,14 +224,14 @@
         }
         
         function startAR() {
-            status.textContent = 'Loading AR...';
+            status.textContent = 'Загрузка AR...';
             
             // Get the AR system
             const arSystem = sceneEl.systems["mindar-image-system"];
             
             // Event handlers
             sceneEl.addEventListener('arReady', function() {
-                status.textContent = 'Point camera at marker';
+                status.textContent = 'Наведите камеру на маркер';
                 loading.style.display = 'none';
             });
             
@@ -271,6 +271,7 @@
     </script>
 </body>
 </html>
+
 
 
 
