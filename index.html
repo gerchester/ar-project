@@ -41,6 +41,8 @@
             font-size: 14px;
             z-index: 100;
             pointer-events: none;
+            max-width: 80%;
+text-align: center;
         }
         
         .loading {
@@ -64,7 +66,7 @@
             left: 50%;
             transform: translateX(-50%);
             color: #fff;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.0);
             padding: 10px 20px;
             border-radius: 20px;
             font-size: 12px;
@@ -112,22 +114,22 @@
         /* Position each button in the grid */
         .up-btn {
             grid-column: 2;
-            grid-row: 1;
+            grid-row: 2;
         }
         
         .left-btn {
             grid-column: 1;
-            grid-row: 2;
+            grid-row: 3;
         }
         
         .right-btn {
             grid-column: 3;
-            grid-row: 2;
+            grid-row: 3;
         }
         
         .down-btn {
             grid-column: 2;
-            grid-row: 3;
+            grid-row: 4;
         }
     </style>
 </head>
@@ -235,9 +237,9 @@
         </a-scene>
     </div>
     
-    <div class="status" id="status">Point camera at marker</div>
-    <div class="loading" id="loading">Loading AR...</div>
-    <div class="marker-info" id="markerInfo">Detected marker: None</div>
+    <div class="status" id="status">Наведите камеру на маркер</div>
+    <div class="loading" id="loading">Загрузка AR...</div>
+    <div class="marker-info" id="markerInfo"></div>
 
     <!-- Rotation Controls -->
     <div class="controls">
@@ -319,13 +321,13 @@
             
             // Event handlers
             sceneEl.addEventListener('arReady', function() {
-                status.textContent = 'Point camera at marker';
+                status.textContent = 'Наведите камеру на маркер';
                 loading.style.display = 'none';
             });
             
             sceneEl.addEventListener('arError', function(evt) {
                 console.error('AR Error:', evt.detail);
-                status.textContent = 'AR failed to load';
+                status.textContent = 'Обновите страницу или отсканируйте Qr-код заново';
                 loading.style.display = 'none';
             });
             
@@ -337,7 +339,7 @@
             
             markers.forEach((marker, index) => {
                 marker.addEventListener('targetFound', function() {
-                    status.textContent = 'Marker ' + index + ' detected';
+                    status.textContent = 'Маркер ' + index + ' обнаружен';
                     // Set the current model to the one that was just found
                     currentModel = marker.querySelector('a-gltf-model');
                 });
@@ -362,6 +364,7 @@
     </script>
 </body>
 </html>
+
 
 
 
