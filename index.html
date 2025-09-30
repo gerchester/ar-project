@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebAR Multiple Marker Tracking</title>
+    <title>WebAR with Rotation Controls</title>
     <script src="./aframe.min.js"></script>
     <script src="./mindar-image-aframe.prod.js"></script>
     <style>
@@ -41,8 +41,6 @@
             font-size: 14px;
             z-index: 100;
             pointer-events: none;
-            max-width: 80%;
-text-align: center;
         }
         
         .loading {
@@ -66,7 +64,7 @@ text-align: center;
             left: 50%;
             transform: translateX(-50%);
             color: #fff;
-            background: rgba(0, 0, 0, 0.0);
+            background: rgba(0, 0, 0, 0.6);
             padding: 10px 20px;
             border-radius: 20px;
             font-size: 12px;
@@ -74,14 +72,70 @@ text-align: center;
             text-align: center;
             max-width: 80%;
         }
+        
+        .controls {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 10px;
+            z-index: 100;
+        }
+        
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.8);
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.1);
+        }
+        
+        .control-btn:active {
+            background: rgba(200, 200, 200, 1);
+            transform: scale(0.95);
+        }
+        
+        /* Position each button in the grid */
+        .up-btn {
+            grid-column: 2;
+            grid-row: 1;
+        }
+        
+        .left-btn {
+            grid-column: 1;
+            grid-row: 2;
+        }
+        
+        .right-btn {
+            grid-column: 3;
+            grid-row: 2;
+        }
+        
+        .down-btn {
+            grid-column: 2;
+            grid-row: 3;
+        }
     </style>
 </head>
 <body>
     <div id="ar-container">
         <a-scene 
             id="scene" 
-            
-            mindar-image="imageTargetSrc: ./targetskid.mind; 
+            mindar-image="imageTargetSrc: ./targets3tamplates.mind; 
                          uiLoading: no; 
                          uiScanning: no; 
                          uiError: no; 
@@ -93,7 +147,6 @@ text-align: center;
             embedded>
              
             <a-assets>
-                
                 <a-asset-item id="model1" src="./models/model1_Lotok_gluhoy50.glb?v=1"></a-asset-item>
                 <a-asset-item id="model2" src="./models/model2_Lotok_gluhoy65.glb?v=1"></a-asset-item>
                 <a-asset-item id="model3" src="./models/model3_Lotok_gluhoy80.glb?v=1"></a-asset-item>
@@ -104,15 +157,14 @@ text-align: center;
                 <a-asset-item id="model8" src="./models/model8_Lotok_perf80.glb?v=1"></a-asset-item>
                 <a-asset-item id="model9" src="./models/model9_Lotok_perf100.glb?v=1"></a-asset-item>
                 <a-asset-item id="model10" src="./models/model10_Lotok_perf150.glb?v=1"></a-asset-item>
-                <a-asset-item id="model11" src="./models/model11_lestni_50.glb?v=1"></a-asset-item>
-                <a-asset-item id="model12" src="./models/model12_lestni_65.glb?v=1"></a-asset-item>
-                <a-asset-item id="model13" src="./models/model13_lestni_80.glb?v=1"></a-asset-item>
-                <a-asset-item id="model14" src="./models/model14_lestni_100.glb?v=1"></a-asset-item>
-                <a-asset-item id="model15" src="./models/model15_lestni_150.glb?v=1"></a-asset-item>
-                
+                <a-asset-item id="model11" src="./models/model11_lestni_50.glb.glb?v=1"></a-asset-item>
+                <a-asset-item id="model12" src="./models/model12_lestni_65.glb.glb?v=1"></a-asset-item>
+                <a-asset-item id="model13" src="./models/model13_lestni_80.glb.glb?v=1"></a-asset-item>
+                <a-asset-item id="model14" src="./models/model14_lestni_100.glb.glb?v=1"></a-asset-item>
+                <a-asset-item id="model15" src="./models/model15_lestni_150.glb.glb?v=1"></a-asset-item>
             </a-assets>
 
-            <!-- Lighting Setup - Removed target attributes for multiple markers -->
+            <!-- Lighting Setup -->
             <a-light type="ambient" color="#FFF" intensity="2.5"></a-light>
             <a-light type="directional" color="#FFF" intensity="2" position="2 5 3"></a-light>
             <a-light type="directional" color="#fff" intensity="1" position="-3 2 -2"></a-light>
@@ -120,90 +172,124 @@ text-align: center;
 
             <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
+            <!-- Models (removed smooth-rotation) -->
             <a-entity mindar-image-target="targetIndex: 0">
-                <a-gltf-model src="#model1" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0" smooth-rotation="speed: 0.000"></a-gltf-model>
+                <a-gltf-model src="#model1" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 1">
-                <a-gltf-model src="#model2" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0" smooth-rotation="speed: 0.000"></a-gltf-model>
+                <a-gltf-model src="#model2" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 2">
-                <a-gltf-model src="#model3" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0" smooth-rotation="speed: 0.000"></a-gltf-model>
+                <a-gltf-model src="#model3" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 3">
-                <a-gltf-model src="#model4" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0" smooth-rotation="speed: 0.000"></a-gltf-model>
+                <a-gltf-model src="#model4" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 4">
-                <a-gltf-model src="#model5" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0" smooth-rotation="speed: 0.000"></a-gltf-model>
+                <a-gltf-model src="#model5" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 5">
-                <a-gltf-model src="#model6" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0" smooth-rotation="speed: 0.000"></a-gltf-model>
+                <a-gltf-model src="#model6" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 6">
-                <a-gltf-model src="#model7" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0" smooth-rotation="speed: 0.000"></a-gltf-model>
+                <a-gltf-model src="#model7" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 7">
-                <a-gltf-model src="#model8" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0" smooth-rotation="speed: 0.000"></a-gltf-model>
+                <a-gltf-model src="#model8" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 8">
-                <a-gltf-model src="#model9" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0" smooth-rotation="speed: 0.000"></a-gltf-model>
+                <a-gltf-model src="#model9" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 9">
-                <a-gltf-model src="#model10" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0" smooth-rotation="speed: 0.000"></a-gltf-model>
+                <a-gltf-model src="#model10" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
             </a-entity>
             
             <a-entity mindar-image-target="targetIndex: 10">
-                <a-gltf-model src="#model11" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.000"></a-gltf-model>
+                <a-gltf-model src="#model11" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 11">
-                <a-gltf-model src="#model12" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.000"></a-gltf-model>
+                <a-gltf-model src="#model12" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 12">
-                <a-gltf-model src="#model13" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.000"></a-gltf-model>
+                <a-gltf-model src="#model13" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 13">
-                <a-gltf-model src="#model14" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.000"></a-gltf-model>
+                <a-gltf-model src="#model14" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 14">
-                <a-gltf-model src="#model15" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0" smooth-rotation="speed: 0.000"></a-gltf-model>
+                <a-gltf-model src="#model15" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
             </a-entity>
         </a-scene>
     </div>
     
     <div class="status" id="status">Point camera at marker</div>
     <div class="loading" id="loading">Loading AR...</div>
-    <div class="marker-info" id="markerInfo"></div>
+    <div class="marker-info" id="markerInfo">Detected marker: None</div>
+
+    <!-- Rotation Controls -->
+    <div class="controls">
+        <button class="control-btn up-btn" id="upBtn">↑</button>
+        <button class="control-btn left-btn" id="leftBtn">←</button>
+        <button class="control-btn right-btn" id="rightBtn">→</button>
+        <button class="control-btn down-btn" id="downBtn">↓</button>
+    </div>
 
     <script>
-    // Register the smooth rotation component
-    AFRAME.registerComponent('smooth-rotation', {
-        schema: {
-            speed: {type: 'number', default: 0.001}
-        },
-        
-        tick: function (time, timeDelta) {
-            // Smooth rotation without resetting
-            this.el.object3D.rotation.z += this.data.speed * (timeDelta / 16);
-        }
-    });
+    let currentModel = null;
+    const ROTATION_AMOUNT = 15; // degrees per click
 
     document.addEventListener('DOMContentLoaded', function() {
         const status = document.getElementById('status');
         const loading = document.getElementById('loading');
         const sceneEl = document.querySelector('a-scene');
-        
+        const upBtn = document.getElementById('upBtn');
+        const downBtn = document.getElementById('downBtn');
+        const leftBtn = document.getElementById('leftBtn');
+        const rightBtn = document.getElementById('rightBtn');
+
+        // Setup rotation controls
+        upBtn.addEventListener('click', () => rotateModel('up'));
+        downBtn.addEventListener('click', () => rotateModel('down'));
+        leftBtn.addEventListener('click', () => rotateModel('left'));
+        rightBtn.addEventListener('click', () => rotateModel('right'));
+
+        function rotateModel(direction) {
+            if (!currentModel) return;
+            
+            const currentRotation = currentModel.getAttribute('rotation');
+            let newRotation = {...currentRotation};
+            
+            switch(direction) {
+                case 'up':
+                    newRotation.x += ROTATION_AMOUNT;
+                    break;
+                case 'down':
+                    newRotation.x -= ROTATION_AMOUNT;
+                    break;
+                case 'left':
+                    newRotation.y += ROTATION_AMOUNT;
+                    break;
+                case 'right':
+                    newRotation.y -= ROTATION_AMOUNT;
+                    break;
+            }
+            
+            currentModel.setAttribute('rotation', newRotation);
+        }
+
         // First request camera permission only
         async function initAR() {
             try {
@@ -220,20 +306,20 @@ text-align: center;
                 startAR();
             } catch (error) {
                 console.error('Camera permission error:', error);
-                status.textContent = 'Разрешите доступ к камере или отсканируйте qr-код еще раз';
+                status.textContent = 'Please allow camera access for AR';
                 loading.style.display = 'none';
             }
         }
         
         function startAR() {
-            status.textContent = 'Загрузка AR...';
+            status.textContent = 'Loading AR...';
             
             // Get the AR system
             const arSystem = sceneEl.systems["mindar-image-system"];
             
             // Event handlers
             sceneEl.addEventListener('arReady', function() {
-                status.textContent = 'Наведите камеру на маркер';
+                status.textContent = 'Point camera at marker';
                 loading.style.display = 'none';
             });
             
@@ -251,11 +337,14 @@ text-align: center;
             
             markers.forEach((marker, index) => {
                 marker.addEventListener('targetFound', function() {
-                    status.textContent = 'Маркер ' + index + ' обнаружен';
+                    status.textContent = 'Marker ' + index + ' detected';
+                    // Set the current model to the one that was just found
+                    currentModel = marker.querySelector('a-gltf-model');
                 });
                 
                 marker.addEventListener('targetLost', function() {
-                    status.textContent = 'Наведите камеру на маркер';
+                    status.textContent = 'Point camera at marker';
+                    // Don't clear currentModel immediately, keep the last detected model
                 });
             });
         }
@@ -273,9 +362,6 @@ text-align: center;
     </script>
 </body>
 </html>
-
-
-
 
 
 
