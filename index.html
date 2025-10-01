@@ -76,7 +76,8 @@ text-align: center;
             max-width: 80%;
         }
         
-  
+     
+
     </style>
 </head>
 <body>
@@ -187,10 +188,20 @@ text-align: center;
     <div class="loading" id="loading">Загрузка AR...</div>
     <div class="marker-info" id="markerInfo"></div>
 
-   
-
+    
+    
     <script>
-   
+    let currentModel = null;
+    const ROTATION_AMOUNT = 15; // degrees per click
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const status = document.getElementById('status');
+        const loading = document.getElementById('loading');
+        const sceneEl = document.querySelector('a-scene');
+        
+
+    
+
         // First request camera permission only
         async function initAR() {
             try {
@@ -349,6 +360,7 @@ document.querySelector('a-scene').addEventListener('loaded', function() {
     </script>
 </body>
 </html>
+
 
 
 
