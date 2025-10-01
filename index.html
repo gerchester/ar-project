@@ -76,60 +76,7 @@ text-align: center;
             max-width: 80%;
         }
         
-       .controls {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 100;
-}
-
-.control-btn {
-    width: 60px;
-    height: 60px;
-    border: none;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.4);
-    font-size: 20px;
-    cursor: pointer;
-    transition:  background 0.8s ease-out;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: auto;
-    position: absolute;
-}
-
-
-
-.control-btn:active {
-    background: rgba(200, 200, 200, 0.8);
-    ;
-}
-
-.up-btn {
-    top: 500px;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.down-btn {
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.left-btn {
-    top: 85.5%;
-    left: 105px;
-    transform: translateY(-50%);
-}
-
-.right-btn {
-    top: 85.5%;
-    right: 105px;
-    transform: translateY(-50%);
-}
+  
     </style>
 </head>
 <body>
@@ -240,57 +187,10 @@ text-align: center;
     <div class="loading" id="loading">Загрузка AR...</div>
     <div class="marker-info" id="markerInfo"></div>
 
-    <!-- Rotation Controls -->
-    <div class="controls">
-        <button class="control-btn up-btn" id="upBtn">↑</button>
-        <button class="control-btn left-btn" id="leftBtn">←</button>
-        <button class="control-btn right-btn" id="rightBtn">→</button>
-        <button class="control-btn down-btn" id="downBtn">↓</button>
-    </div>
+   
 
     <script>
-    let currentModel = null;
-    const ROTATION_AMOUNT = 15; // degrees per click
-
-    document.addEventListener('DOMContentLoaded', function() {
-        const status = document.getElementById('status');
-        const loading = document.getElementById('loading');
-        const sceneEl = document.querySelector('a-scene');
-        const upBtn = document.getElementById('upBtn');
-        const downBtn = document.getElementById('downBtn');
-        const leftBtn = document.getElementById('leftBtn');
-        const rightBtn = document.getElementById('rightBtn');
-
-        // Setup rotation controls
-        upBtn.addEventListener('click', () => rotateModel('up'));
-        downBtn.addEventListener('click', () => rotateModel('down'));
-        leftBtn.addEventListener('click', () => rotateModel('left'));
-        rightBtn.addEventListener('click', () => rotateModel('right'));
-
-        function rotateModel(direction) {
-            if (!currentModel) return;
-            
-            const currentRotation = currentModel.getAttribute('rotation');
-            let newRotation = {...currentRotation};
-            
-            switch(direction) {
-                case 'up':
-                    newRotation.x += ROTATION_AMOUNT;
-                    break;
-                case 'down':
-                    newRotation.x -= ROTATION_AMOUNT;
-                    break;
-                case 'left':
-                    newRotation.y += ROTATION_AMOUNT;
-                    break;
-                case 'right':
-                    newRotation.y -= ROTATION_AMOUNT;
-                    break;
-            }
-            
-            currentModel.setAttribute('rotation', newRotation);
-        }
-
+   
         // First request camera permission only
         async function initAR() {
             try {
@@ -449,6 +349,7 @@ document.querySelector('a-scene').addEventListener('loaded', function() {
     </script>
 </body>
 </html>
+
 
 
 
