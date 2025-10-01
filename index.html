@@ -6,6 +6,7 @@
     <title>WebAR with Rotation Controls</title>
     <script src="./aframe.min.js"></script>
     <script src="./mindar-image-aframe.prod.js"></script>
+    <script src="./hammer.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -359,9 +360,96 @@ text-align: center;
             }
         });
     });
+        // Wait for the AR scene to load
+document.querySelector('a-scene').addEventListener('loaded', function() {
+    const arContainer = document.getElementById('ar-container');
+    let currentModel = null; // This will reference the currently detected model
+
+    // Initialize Hammer.js on the AR container
+    const hammerManager = new Hammer.Manager(arContainer);
+
+    // Create and configure the pan gesture for rotation
+    const Pan = new Hammer.Pan({ threshold: 0, pointers: 1 });
+    hammerManager.add(Pan);
+
+    // Create and configure the pinch gesture for scaling
+    const Pinch = new Hammer.Pinch({ threshold: 0 });
+    hammerManager.add(Pinch);
+
+    // Listen for marker detection to set the current model
+    const markers = document.querySelectorAll('[mindar-image-target]');
+    markers.forEach((marker) => {
+        marker.addEventListener('targetFound', event => {
+            currentModel = event.target.querySelector('a-gltf-model');
+        });
+        marker.addEventListener('targetLost', event => {
+            // Optional: Keep the last model as current, or set to null
+            // currentModel = null;
+        });
+    });
+
+    // Variables to track the last state
+    let lastPanPosition = { x: 0, y: 0 };
+    let lastScale = 1;
+
+    // Handle the pan gesture to rotate the model
+    hammerManager.on('panstart panmove', function(event) {
+        if (!currentModel) return;
+
+        // Get the current rotation
+        const rotation = currentModel.getAttribute('rotation');
+
+        if (event.type === 'panstart') {
+            lastPanPosition.x = event.center.x;
+            lastPanPosition.y = event.center.y;
+        } else if (event.type === 'panmove') {
+            // Calculate the change in position
+            const deltaX = event.center.x - lastPanPosition.x;
+            const deltaY = event.center.y - lastPanPosition.y;
+
+            // Update the rotation (adjust the divisor to change sensitivity)
+            rotation.y += deltaX * 0.5;
+            rotation.x += deltaY * 0.5;
+
+            // Apply the new rotation
+            currentModel.setAttribute('rotation', rotation);
+
+            // Update the last position
+            lastPanPosition.x = event.center.x;
+            lastPanPosition.y = event.center.y;
+        }
+    });
+
+    // Handle the pinch gesture to scale the model
+    hammerManager.on('pinchstart pinchmove', function(event) {
+        if (!currentModel) return;
+
+        // Get the current scale
+        let scale = currentModel.getAttribute('scale');
+
+        if (event.type === 'pinchstart') {
+            lastScale = event.scale;
+        } else if (event.type === 'pinchmove') {
+            // Calculate the scale factor
+            const scaleFactor = event.scale / lastScale;
+
+            // Update the scale uniformly
+            scale.x *= scaleFactor;
+            scale.y *= scaleFactor;
+            scale.z *= scaleFactor;
+
+            // Apply the new scale
+            currentModel.setAttribute('scale', scale);
+
+            // Update the last scale
+            lastScale = event.scale;
+        }
+    });
+});
     </script>
 </body>
 </html>
+
 
 
 
