@@ -88,7 +88,10 @@ text-align: center;
                          uiLoading: no; 
                          uiScanning: no; 
                          uiError: no; 
-                         autoStart: false;"
+                         autoStart: false;
+            filterMinCF: 0.001;
+                 filterBeta: 0.1;
+                 maxTrackFPS: 30;"
             color-space="sRGB" 
             renderer="colorManagement: true; physicallyCorrectLights: true"
             vr-mode-ui="enabled: false"
@@ -122,7 +125,7 @@ text-align: center;
             <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
             <!-- Models (removed smooth-rotation) -->
-            <a-entity mindar-image-target="targetIndex: 0">
+            <a-entity mindar-image-target="targetIndex: 0" stabilize-model="smoothness: 0.4">
                 <a-gltf-model src="#model1" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
             </a-entity>
 
@@ -174,7 +177,7 @@ text-align: center;
                 <a-gltf-model src="#model13" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
             </a-entity>
 
-            <a-entity mindar-image-target="targetIndex: 13">
+            <a-entity mindar-image-target="targetIndex: 13 ">
                 <a-gltf-model src="#model14" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
             </a-entity>
 
@@ -191,6 +194,29 @@ text-align: center;
     
     
     <script>
+       
+AFRAME.registerComponent('stabilize', {
+    schema: {
+        smoothness: {type: 'number', default: 0.3}
+    },
+    
+    tick: function() {
+        const currentPos = this.el.object3D.position;
+        const currentRot = this.el.object3D.rotation;
+        
+        // Only update if movement is significant (reduces micro-jitters)
+        if (this.lastPos) {
+            const distance = currentPos.distanceTo(this.lastPos);
+            if (distance < 0.01) { // Threshold for considering it "jitter"
+                this.el.object3D.position.lerp(this.lastPos, this.data.smoothness);
+            }
+        }
+        
+        this.lastPos = currentPos.clone();
+        this.lastRot = currentRot.clone();
+    }
+});
+
     let currentModel = null;
     const ROTATION_AMOUNT = 15; // degrees per click
 
@@ -360,6 +386,7 @@ document.querySelector('a-scene').addEventListener('loaded', function() {
     </script>
 </body>
 </html>
+
 
 
 
