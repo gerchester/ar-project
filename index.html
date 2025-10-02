@@ -88,10 +88,7 @@ text-align: center;
                          uiLoading: no; 
                          uiScanning: no; 
                          uiError: no; 
-                         autoStart: false;
-            filterMinCF: 0.001;
-                 filterBeta: 0.1;
-                 maxTrackFPS: 30;"
+                         autoStart: false;"
             color-space="sRGB" 
             renderer="colorManagement: true; physicallyCorrectLights: true"
             vr-mode-ui="enabled: false"
@@ -125,7 +122,7 @@ text-align: center;
             <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
             <!-- Models (removed smooth-rotation) -->
-            <a-entity mindar-image-target="targetIndex: 0" smooth-tracking="lerpFactor: 0.1">
+            <a-entity mindar-image-target="targetIndex: 0">
                 <a-gltf-model src="#model1" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
             </a-entity>
 
@@ -177,7 +174,7 @@ text-align: center;
                 <a-gltf-model src="#model13" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
             </a-entity>
 
-            <a-entity mindar-image-target="targetIndex: 13 ">
+            <a-entity mindar-image-target="targetIndex: 13">
                 <a-gltf-model src="#model14" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
             </a-entity>
 
@@ -194,51 +191,6 @@ text-align: center;
     
     
     <script>
-       
-AFRAME.registerComponent('smooth-tracking', {
-    schema: {
-        lerpFactor: {type: 'number', default: 0.15},
-        minDistance: {type: 'number', default: 0.001},
-        minRotation: {type: 'number', default: 0.1}
-    },
-    
-    init: function() {
-        this.targetPosition = new THREE.Vector3();
-        this.targetRotation = new THREE.Euler();
-        this.smoothedPosition = new THREE.Vector3();
-        this.smoothedRotation = new THREE.Euler();
-        
-        // Copy initial position and rotation
-        this.smoothedPosition.copy(this.el.object3D.position);
-        this.smoothedRotation.copy(this.el.object3D.rotation);
-    },
-    
-    tick: function() {
-        // Get current target position/rotation
-        this.targetPosition.copy(this.el.object3D.position);
-        this.targetRotation.copy(this.el.object3D.rotation);
-        
-        // Smooth position
-        this.smoothedPosition.lerp(this.targetPosition, this.data.lerpFactor);
-        
-        // Smooth rotation
-        this.smoothedRotation.x = this.lerpAngle(this.smoothedRotation.x, this.targetRotation.x, this.data.lerpFactor);
-        this.smoothedRotation.y = this.lerpAngle(this.smoothedRotation.y, this.targetRotation.y, this.data.lerpFactor);
-        this.smoothedRotation.z = this.lerpAngle(this.smoothedRotation.z, this.targetRotation.z, this.data.lerpFactor);
-        
-        // Apply smoothed values
-        this.el.object3D.position.copy(this.smoothedPosition);
-        this.el.object3D.rotation.copy(this.smoothedRotation);
-    },
-    
-    lerpAngle: function(start, end, factor) {
-        // Handle angle wrapping for smooth rotation
-        let difference = end - start;
-        if (difference > Math.PI) difference -= Math.PI * 2;
-        if (difference < -Math.PI) difference += Math.PI * 2;
-        return start + difference * factor;
-    }
-});
     let currentModel = null;
     const ROTATION_AMOUNT = 15; // degrees per click
 
@@ -408,10 +360,6 @@ document.querySelector('a-scene').addEventListener('loaded', function() {
     </script>
 </body>
 </html>
-
-
-
-
 
 
 
