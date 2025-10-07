@@ -6,8 +6,8 @@
     <title>WebAR with Rotation Controls</title>
     <script src="./aframe.min.js"></script>
     <script src="./mindar-image-aframe.prod.js"></script>
-  <!--  <script src="./hammer.min.js"></script>
-    -->
+   <script src="./hammer.min.js"></script>
+  
    
     <style>
         * {
@@ -352,7 +352,7 @@ document.querySelector('a-scene').addEventListener('loaded', function() {
 
    
                                                 
-    /* hammerManager.on('panstart panmove', function(event) {
+     hammerManager.on('panstart panmove', function(event) {
         if (!currentModel) return;
 
         // Get the current rotation
@@ -377,7 +377,7 @@ document.querySelector('a-scene').addEventListener('loaded', function() {
             lastPanPosition.x = event.center.x;
             lastPanPosition.y = event.center.y;
         }
-    }); */
+    }); 
 
     // Handle the pinch gesture to scale the model
     hammerManager.on('pinchstart pinchmove', function(event) {
@@ -411,6 +411,7 @@ document.querySelector('a-scene').addEventListener('loaded', function() {
     </script>
 </body>
 </html>
+
 
 
 
