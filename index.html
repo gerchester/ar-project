@@ -318,99 +318,127 @@ text-align: center;
             }
         });
     });
-        // Wait for the AR scene to load
-document.querySelector('a-scene').addEventListener('loaded', function() {
+        document.querySelector('a-scene').addEventListener('loaded', function() {
     const arContainer = document.getElementById('ar-container');
-    let currentModel = null; // This will reference the currently detected model
+    const sceneEl = document.querySelector('a-scene');
+    let currentModel = null;
+    let modelAnchor = null;
+
+    // Create anchor for detached model - this stays with camera
+    const cameraEl = sceneEl.querySelector('a-camera');
+    modelAnchor = document.createElement('a-entity');
+    modelAnchor.setAttribute('id', 'modelAnchor');
+    cameraEl.appendChild(modelAnchor);
 
     // Initialize Hammer.js on the AR container
     const hammerManager = new Hammer.Manager(arContainer);
-
-    // Create and configure the pan gesture for rotation
     const Pan = new Hammer.Pan({ threshold: 0, pointers: 1 });
-    hammerManager.add(Pan);
-
-    // Create and configure the pinch gesture for scaling
     const Pinch = new Hammer.Pinch({ threshold: 0 });
+    hammerManager.add(Pan);
     hammerManager.add(Pinch);
 
-    // Listen for marker detection to set the current model
-    const markers = document.querySelectorAll('[mindar-image-target]');
-    markers.forEach((marker) => {
-        marker.addEventListener('targetFound', event => {
-            currentModel = event.target.querySelector('a-gltf-model');
-        });
-        marker.addEventListener('targetLost', event => {
-            // Optional: Keep the last model as current, or set to null
-            // currentModel = null;
-        });
-    });
-
-    // Variables to track the last state
+    // Variables to track the last state for gestures
     let lastPanPosition = { x: 0, y: 0 };
     let lastScale = 1;
 
-   
-                                                
-     hammerManager.on('panstart panmove', function(event) {
+    // Listen for marker detection
+    const markers = document.querySelectorAll('[mindar-image-target]');
+    markers.forEach((marker) => {
+        marker.addEventListener('targetFound', event => {
+            // Only place model once
+            if (currentModel || !modelAnchor) return;
+
+            const detectedModel = event.target.querySelector('a-gltf-model');
+            if (detectedModel) {
+                // Clone the model
+                currentModel = detectedModel.cloneNode(true);
+                
+                // Get world position when marker found
+                const modelWorldMatrix = new THREE.Matrix4();
+                detectedModel.object3D.updateMatrixWorld(true);
+                modelWorldMatrix.copy(detectedModel.object3D.matrixWorld);
+                
+                // Add to camera anchor
+                modelAnchor.appendChild(currentModel);
+                
+                // Apply the world position relative to camera
+                const position = new THREE.Vector3();
+                const quaternion = new THREE.Quaternion();
+                const scale = new THREE.Vector3();
+                
+                modelWorldMatrix.decompose(position, quaternion, scale);
+                
+                // Convert to camera-relative coordinates
+                const cameraWorldMatrix = new THREE.Matrix4();
+                cameraEl.object3D.updateMatrixWorld(true);
+                cameraWorldMatrix.copy(cameraEl.object3D.matrixWorld);
+                const inverseCameraMatrix = new THREE.Matrix4().copy(cameraWorldMatrix).invert();
+                position.applyMatrix4(inverseCameraMatrix);
+                
+                // Convert quaternion to Euler for A-Frame
+                const euler = new THREE.Euler().setFromQuaternion(quaternion);
+                const degrees = {
+                    x: THREE.Math.radToDeg(euler.x),
+                    y: THREE.Math.radToDeg(euler.y),
+                    z: THREE.Math.radToDeg(euler.z)
+                };
+                
+                currentModel.setAttribute('position', {x: position.x, y: position.y, z: position.z});
+                currentModel.setAttribute('rotation', {x: degrees.x, y: degrees.y, z: degrees.z});
+                currentModel.setAttribute('scale', detectedModel.getAttribute('scale'));
+                
+                console.log('Model placed in front of camera');
+            }
+        });
+    });
+
+    // Handle the pan gesture to rotate the model
+    hammerManager.on('panstart panmove', function(event) {
         if (!currentModel) return;
 
-        // Get the current rotation
         const rotation = currentModel.getAttribute('rotation');
 
         if (event.type === 'panstart') {
             lastPanPosition.x = event.center.x;
             lastPanPosition.y = event.center.y;
         } else if (event.type === 'panmove') {
-            // Calculate the change in position
             const deltaX = event.center.x - lastPanPosition.x;
             const deltaY = event.center.y - lastPanPosition.y;
 
-            // Update the rotation (adjust the divisor to change sensitivity)
             rotation.y += deltaX * 0.5;
             rotation.x += deltaY * 0.5;
 
-            // Apply the new rotation
             currentModel.setAttribute('rotation', rotation);
 
-            // Update the last position
             lastPanPosition.x = event.center.x;
             lastPanPosition.y = event.center.y;
         }
-    }); 
+    });
 
     // Handle the pinch gesture to scale the model
     hammerManager.on('pinchstart pinchmove', function(event) {
         if (!currentModel) return;
 
-        // Get the current scale
         let scale = currentModel.getAttribute('scale');
 
         if (event.type === 'pinchstart') {
             lastScale = event.scale;
         } else if (event.type === 'pinchmove') {
-            // Calculate the scale factor
             const scaleFactor = event.scale / lastScale;
 
-            // Update the scale uniformly
             scale.x *= scaleFactor;
             scale.y *= scaleFactor;
             scale.z *= scaleFactor;
 
-            // Apply the new scale
             currentModel.setAttribute('scale', scale);
-
-            // Update the last scale
             lastScale = event.scale;
-  
-
-            }
-        });
+        }
     });
-
+});
     </script>
 </body>
 </html>
+
 
 
 
