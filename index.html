@@ -8,6 +8,33 @@
     <script src="./mindar-image-aframe.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/[email protected]/dist/aframe-extras.min.js"></script>
     <script src="./hammer.min.js"></script>
+   <script document.addEventListener('DOMContentLoaded', () => {
+  const modelEl = document.querySelector('#animatedModel');
+
+  modelEl.addEventListener('model-loaded', (e) => {
+    const mesh = modelEl.getObject3D('mesh');
+    if (!mesh) return;
+
+    mesh.traverse((node) => {
+      if (node.animations && node.animations.length) {
+        const mixer = new THREE.AnimationMixer(node);
+        const action = mixer.clipAction(node.animations[0]);
+        action.play();
+
+        // Обновляем mixer каждый кадр, чтобы анимация двигалась
+        modelEl.sceneEl.addEventListener('render-target-loaded', () => {
+          modelEl.sceneEl.addEventListener('renderstart', () => {
+            modelEl.sceneEl.addEventListener('render', (ev) => {
+              const dt = ev.detail.delta / 1000;
+              mixer.update(dt);
+            });
+          });
+        });
+      }
+    });
+  });
+});
+       ></script>
     <style>
         * {
             margin: 0;
@@ -186,13 +213,12 @@ text-align: center;
             <a-entity mindar-image-target="targetIndex: 14">
                 <a-gltf-model src="#model15" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
             </a-entity>
-            <a-entity mindar-image-target="targetIndex: 15">
-  <a-gltf-model
-    src="#model16"
-    position="0 0 0"
-    scale="1 1 1"
-    rotation="0 0 0"
-    animation-mixer="loop: repeat">
+            <a-entity mindar-image-target="targetIndex: 15" id="animatedTarget">
+  <a-gltf-model id="animatedModel"
+                src="#model16"
+                position="0 0 0"
+                scale="1 1 1"
+                rotation="0 0 0">
   </a-gltf-model>
 </a-entity>
         </a-scene>
@@ -376,6 +402,7 @@ document.querySelector('a-scene').addEventListener('loaded', function() {
     </script>
 </body>
 </html>
+
 
 
 
