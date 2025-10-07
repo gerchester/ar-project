@@ -7,42 +7,7 @@
     <script src="./aframe.min.js"></script>
     <script src="./mindar-image-aframe.prod.js"></script>
     <script src="./hammer.min.js"></script>
-     <script document.addEventListener('DOMContentLoaded', () => {
-        // 1. Find your model entity. Give it an ID for easy selection.
-        const modelEl = document.querySelector('#animatedModel');
-
-        // 2. Wait for the glTF model to be fully loaded
-        modelEl.addEventListener('model-loaded', (e) => {
-            console.log('Model loaded!'); // Check browser console to see if this logs
-
-            // 3. Get the Three.js object
-            const mesh = modelEl.getObject3D('mesh');
-            if (!mesh) {
-                console.warn('No mesh found on model.');
-                return;
-            }
-
-            // 4. Look for animations in the model
-            let animationFound = false;
-            mesh.traverse((node) => {
-                if (node.animations && node.animations.length > 0) {
-                    animationFound = true;
-                    console.log('Found animations:', node.animations.length);
-
-                    // 5. Create an animation mixer and play the first animation
-                    const mixer = new THREE.AnimationMixer(node);
-                    const action = mixer.clipAction(node.animations[0]);
-                    action.play();
-
-                    // 6. Update the mixer on every frame
-                    modelEl.sceneEl.addEventListener('tick', (time, timeDelta) => {
-                        mixer.update(timeDelta / 1000); // Convert milliseconds to seconds
-                    });
-                }
-            });
-
-            if (!animationFound) {
-                console.warn('No animations were found in the model file.');></script>
+    
    
     <style>
         * {
@@ -215,7 +180,7 @@ text-align: center;
                 <a-gltf-model src="#model13" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
             </a-entity>
 
-            <a-entity mindar-image-target="targetIndex: 13 ">
+            <a-entity mindar-image-target="targetIndex: 13">
                 <a-gltf-model src="#model14" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
             </a-entity>
 
@@ -251,7 +216,38 @@ text-align: center;
         const sceneEl = document.querySelector('a-scene');
         
 
-    
+    const modelEl = document.querySelector('#animatedModel');
+    if (modelEl) {
+        modelEl.addEventListener('model-loaded', (e) => {
+            console.log('Model loaded!');
+            
+            const mesh = modelEl.getObject3D('mesh');
+            if (!mesh) {
+                console.warn('No mesh found on model.');
+                return;
+            }
+
+            let animationFound = false;
+            mesh.traverse((node) => {
+                if (node.animations && node.animations.length > 0) {
+                    animationFound = true;
+                    console.log('Found animations:', node.animations.length);
+
+                    const mixer = new THREE.AnimationMixer(node);
+                    const action = mixer.clipAction(node.animations[0]);
+                    action.play();
+
+                    modelEl.sceneEl.addEventListener('tick', (time, timeDelta) => {
+                        mixer.update(timeDelta / 1000);
+                    });
+                }
+            });
+
+            if (!animationFound) {
+                console.warn('No animations were found in the model file.');
+            }
+        });
+    }
 
         // First request camera permission only
         async function initAR() {
@@ -414,6 +410,7 @@ document.querySelector('a-scene').addEventListener('loaded', function() {
     </script>
 </body>
 </html>
+
 
 
 
