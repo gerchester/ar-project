@@ -126,6 +126,8 @@ text-align: center;
 
             <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
+           <a-entity id="displayModelContainer" position="0 0 -2" rotation="0 0 0" scale="1 1 1"></a-entity> 
+
             <!-- Models (removed smooth-rotation) -->
             <a-entity mindar-image-target="targetIndex: 0">
                 <a-gltf-model src="#model1" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
@@ -258,22 +260,39 @@ text-align: center;
             // Start AR system
             arSystem.start();
             
-            // Handle marker detection
-            const markers = document.querySelectorAll('[mindar-image-target]');
-            
-            markers.forEach((marker, index) => {
-                marker.addEventListener('targetFound', function() {
-                    status.textContent = 'Маркер ' + index + ' обнаружен';
-                    // Set the current model to the one that was just found
-                    currentModel = marker.querySelector('a-gltf-model');
-                });
-                
-                marker.addEventListener('targetLost', function() {
-                    status.textContent = 'Point camera at marker';
-                    // Don't clear currentModel immediately, keep the last detected model
-                });
-            });
-        }
+           const displayContainer = document.getElementById('displayModelContainer');
+
+markers.forEach((marker, index) => {
+  marker.addEventListener('targetFound', function() {
+    status.textContent = 'Маркер ' + index + ' обнаружен';
+
+    // Найти модель, которая "прикреплена" к маркеру
+    const markerModel = marker.querySelector('a-gltf-model');
+    if (!markerModel) return;
+
+    // Получаем src модели
+    const modelSrc = markerModel.getAttribute('src');
+
+    // Если в контейнере уже есть старая модель — удаляем её
+    while (displayContainer.firstChild) {
+      displayContainer.removeChild(displayContainer.firstChild);
+    }
+
+    // Создаем новую модель и добавляем в контейнер
+    const newModel = document.createElement('a-gltf-model');
+    newModel.setAttribute('src', modelSrc);
+    newModel.setAttribute('rotation', '0 0 0');
+    newModel.setAttribute('scale', '1 1 1');
+    displayContainer.appendChild(newModel);
+
+    currentModel = newModel; // обновляем ссылку для управления жестами
+  });
+
+  // Не нужно ничего делать при targetLost — модель остаётся
+  marker.addEventListener('targetLost', function() {
+    status.textContent = 'Маркер потерян, модель осталась';
+  });
+});
         
         // Start the initialization process
         setTimeout(initAR, 500);
@@ -374,4 +393,5 @@ document.querySelector('a-scene').addEventListener('loaded', function() {
     </script>
 </body>
 </html>
+
 
