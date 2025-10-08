@@ -217,48 +217,30 @@ text-align: center;
         
 
     
-
-        // First request camera permission only
-        async function initAR() {
-            try {
-                loading.style.display = 'block';
-                status.textContent = 'Requesting camera access...';
-                
-                // Request camera access first
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                
-                // Stop the camera stream (MindAR will restart it)
-                stream.getTracks().forEach(track => track.stop());
-                
-                // Now start AR
-                startAR();
-            } catch (error) {
-                console.error('Camera permission error:', error);
-                status.textContent = 'Please allow camera access for AR';
-                loading.style.display = 'none';
-            }
-        }
+ startAR();
+    
+    function startAR() {
+        status.textContent = 'Loading AR...';
+        const arSystem = sceneEl.systems["mindar-image-system"];
         
-        function startAR() {
-            status.textContent = 'Loading AR...';
-            
-            // Get the AR system
-            const arSystem = sceneEl.systems["mindar-image-system"];
-            
-            // Event handlers
-            sceneEl.addEventListener('arReady', function() {
-                status.textContent = 'Наведите камеру на маркер';
-                loading.style.display = 'none';
-            });
-            
-            sceneEl.addEventListener('arError', function(evt) {
-                console.error('AR Error:', evt.detail);
-                status.textContent = 'Обновите страницу или отсканируйте Qr-код заново';
-                loading.style.display = 'none';
-            });
-            
-            // Start AR system
-            arSystem.start();
+        sceneEl.addEventListener('arReady', function() {
+            status.textContent = 'Наведите камеру на маркер';
+            loading.style.display = 'none';
+        });
+        
+        sceneEl.addEventListener('arError', function(evt) {
+            console.error('AR Error:', evt.detail);
+            status.textContent = 'AR initialization failed. Please check console for errors.';
+            loading.style.display = 'none';
+        });
+        
+        // Start the AR system - this should trigger camera permission request
+        arSystem.start(); 
+    }
+});
+                
+              
+
             
            const displayContainer = document.getElementById('displayModelContainer');
             const markers = document.querySelectorAll('[mindar-image-target]');
@@ -394,6 +376,7 @@ document.querySelector('a-scene').addEventListener('loaded', function() {
     </script>
 </body>
 </html>
+
 
 
 
