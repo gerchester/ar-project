@@ -201,12 +201,8 @@ text-align: center;
     <div class="status" id="status">Наведите камеру на маркер</div>
     <div class="loading" id="loading">Загрузка AR...</div>
     <div class="marker-info" id="markerInfo"></div>
-
-    
     
     <script>
-       
-
     let currentModel = null;
     const ROTATION_AMOUNT = 15; // degrees per click
 
@@ -214,72 +210,63 @@ text-align: center;
         const status = document.getElementById('status');
         const loading = document.getElementById('loading');
         const sceneEl = document.querySelector('a-scene');
-        
+        const displayContainer = document.getElementById('displayModelContainer');
 
-    
- startAR();
-    
-    function startAR() {
-        status.textContent = 'Loading AR...';
-        const arSystem = sceneEl.systems["mindar-image-system"];
+        // Initialize AR immediately
+        startAR();
         
-        sceneEl.addEventListener('arReady', function() {
-            status.textContent = 'Наведите камеру на маркер';
-            loading.style.display = 'none';
-        });
-        
-        sceneEl.addEventListener('arError', function(evt) {
-            console.error('AR Error:', evt.detail);
-            status.textContent = 'AR initialization failed. Please check console for errors.';
-            loading.style.display = 'none';
-        });
-        
-        // Start the AR system - this should trigger camera permission request
-        arSystem.start(); 
-    }
-});
-                
-              
-
+        function startAR() {
+            status.textContent = 'Loading AR...';
+            const arSystem = sceneEl.systems["mindar-image-system"];
             
-           const displayContainer = document.getElementById('displayModelContainer');
-            const markers = document.querySelectorAll('[mindar-image-target]');
+            sceneEl.addEventListener('arReady', function() {
+                status.textContent = 'Наведите камеру на маркер';
+                loading.style.display = 'none';
+            });
+            
+            sceneEl.addEventListener('arError', function(evt) {
+                console.error('AR Error:', evt.detail);
+                status.textContent = 'AR initialization failed. Please check console for errors.';
+                loading.style.display = 'none';
+            });
+            
+            // Start the AR system - this should trigger camera permission request
+            arSystem.start(); 
+        }
 
-markers.forEach((marker, index) => {
-  marker.addEventListener('targetFound', function() {
-    status.textContent = 'Маркер ' + index + ' обнаружен';
+        // Set up marker detection
+        const markers = document.querySelectorAll('[mindar-image-target]');
+        markers.forEach((marker, index) => {
+            marker.addEventListener('targetFound', function() {
+                status.textContent = 'Маркер ' + index + ' обнаружен';
 
-    // Найти модель, которая "прикреплена" к маркеру
-    const markerModel = marker.querySelector('a-gltf-model');
-    if (!markerModel) return;
+                // Find the model attached to the marker
+                const markerModel = marker.querySelector('a-gltf-model');
+                if (!markerModel) return;
 
-    // Получаем src модели
-    const modelSrc = markerModel.getAttribute('src');
+                // Get the src of the model
+                const modelSrc = markerModel.getAttribute('src');
 
-    // Если в контейнере уже есть старая модель — удаляем её
-    while (displayContainer.firstChild) {
-      displayContainer.removeChild(displayContainer.firstChild);
-    }
+                // Remove any existing model in the container
+                while (displayContainer.firstChild) {
+                    displayContainer.removeChild(displayContainer.firstChild);
+                }
 
-    // Создаем новую модель и добавляем в контейнер
-    const newModel = document.createElement('a-gltf-model');
-    newModel.setAttribute('src', modelSrc);
-    newModel.setAttribute('rotation', '0 0 0');
-    newModel.setAttribute('scale', '1 1 1');
-    displayContainer.appendChild(newModel);
+                // Create a new model and add it to the container
+                const newModel = document.createElement('a-gltf-model');
+                newModel.setAttribute('src', modelSrc);
+                newModel.setAttribute('rotation', '0 0 0');
+                newModel.setAttribute('scale', '1 1 1');
+                displayContainer.appendChild(newModel);
 
-    currentModel = newModel; // обновляем ссылку для управления жестами
-  });
+                currentModel = newModel; // Update reference for gesture control
+            });
 
-  // Не нужно ничего делать при targetLost — модель остаётся
-  marker.addEventListener('targetLost', function() {
-    status.textContent = 'Маркер потерян, модель осталась';
-  });
-});
-        
-        // Start the initialization process
-        setTimeout(initAR, 500);
-        
+            marker.addEventListener('targetLost', function() {
+                status.textContent = 'Маркер потерян, модель осталась';
+            });
+        });
+
         // Handle window resize
         window.addEventListener('resize', function() {
             if (sceneEl.renderer) {
@@ -287,95 +274,85 @@ markers.forEach((marker, index) => {
             }
         });
     });
-        // Wait for the AR scene to load
-document.querySelector('a-scene').addEventListener('loaded', function() {
-    const arContainer = document.getElementById('ar-container');
-    let currentModel = null; // This will reference the currently detected model
 
-    // Initialize Hammer.js on the AR container
-    const hammerManager = new Hammer.Manager(arContainer);
+    // Wait for the AR scene to load and set up gesture controls
+    document.querySelector('a-scene').addEventListener('loaded', function() {
+        const arContainer = document.getElementById('ar-container');
 
-    // Create and configure the pan gesture for rotation
-    const Pan = new Hammer.Pan({ threshold: 0, pointers: 1 });
-    hammerManager.add(Pan);
+        // Initialize Hammer.js on the AR container
+        const hammerManager = new Hammer.Manager(arContainer);
 
-    // Create and configure the pinch gesture for scaling
-    const Pinch = new Hammer.Pinch({ threshold: 0 });
-    hammerManager.add(Pinch);
+        // Create and configure the pan gesture for rotation
+        const Pan = new Hammer.Pan({ threshold: 0, pointers: 1 });
+        hammerManager.add(Pan);
 
-    // Listen for marker detection to set the current model
-    const markers = document.querySelectorAll('[mindar-image-target]');
-    markers.forEach((marker) => {
-        marker.addEventListener('targetFound', event => {
-            currentModel = event.target.querySelector('a-gltf-model');
+        // Create and configure the pinch gesture for scaling
+        const Pinch = new Hammer.Pinch({ threshold: 0 });
+        hammerManager.add(Pinch);
+
+        // Variables to track the last state
+        let lastPanPosition = { x: 0, y: 0 };
+        let lastScale = 1;
+
+        // Handle the pan gesture to rotate the model
+        hammerManager.on('panstart panmove', function(event) {
+            if (!currentModel) return;
+
+            // Get the current rotation
+            const rotation = currentModel.getAttribute('rotation');
+
+            if (event.type === 'panstart') {
+                lastPanPosition.x = event.center.x;
+                lastPanPosition.y = event.center.y;
+            } else if (event.type === 'panmove') {
+                // Calculate the change in position
+                const deltaX = event.center.x - lastPanPosition.x;
+                const deltaY = event.center.y - lastPanPosition.y;
+
+                // Update the rotation (adjust the divisor to change sensitivity)
+                rotation.y += deltaX * 0.5;
+                rotation.x += deltaY * 0.5;
+
+                // Apply the new rotation
+                currentModel.setAttribute('rotation', rotation);
+
+                // Update the last position
+                lastPanPosition.x = event.center.x;
+                lastPanPosition.y = event.center.y;
+            }
         });
-        marker.addEventListener('targetLost', event => {
-            // Optional: Keep the last model as current, or set to null
-            // currentModel = null;
+
+        // Handle the pinch gesture to scale the model
+        hammerManager.on('pinchstart pinchmove', function(event) {
+            if (!currentModel) return;
+
+            // Get the current scale
+            let scale = currentModel.getAttribute('scale');
+
+            if (event.type === 'pinchstart') {
+                lastScale = event.scale;
+            } else if (event.type === 'pinchmove') {
+                // Calculate the scale factor
+                const scaleFactor = event.scale / lastScale;
+
+                // Update the scale uniformly
+                scale.x *= scaleFactor;
+                scale.y *= scaleFactor;
+                scale.z *= scaleFactor;
+
+                // Apply the new scale
+                currentModel.setAttribute('scale', scale);
+
+                // Update the last scale
+                lastScale = event.scale;
+            }
         });
     });
 
-    // Variables to track the last state
-    let lastPanPosition = { x: 0, y: 0 };
-    let lastScale = 1;
-
-    // Handle the pan gesture to rotate the model
-    hammerManager.on('panstart panmove', function(event) {
-        if (!currentModel) return;
-
-        // Get the current rotation
-        const rotation = currentModel.getAttribute('rotation');
-
-        if (event.type === 'panstart') {
-            lastPanPosition.x = event.center.x;
-            lastPanPosition.y = event.center.y;
-        } else if (event.type === 'panmove') {
-            // Calculate the change in position
-            const deltaX = event.center.x - lastPanPosition.x;
-            const deltaY = event.center.y - lastPanPosition.y;
-
-            // Update the rotation (adjust the divisor to change sensitivity)
-            rotation.y += deltaX * 0.5;
-            rotation.x += deltaY * 0.5;
-
-            // Apply the new rotation
-            currentModel.setAttribute('rotation', rotation);
-
-            // Update the last position
-            lastPanPosition.x = event.center.x;
-            lastPanPosition.y = event.center.y;
-        }
-    });
-
-    // Handle the pinch gesture to scale the model
-    hammerManager.on('pinchstart pinchmove', function(event) {
-        if (!currentModel) return;
-
-        // Get the current scale
-        let scale = currentModel.getAttribute('scale');
-
-        if (event.type === 'pinchstart') {
-            lastScale = event.scale;
-        } else if (event.type === 'pinchmove') {
-            // Calculate the scale factor
-            const scaleFactor = event.scale / lastScale;
-
-            // Update the scale uniformly
-            scale.x *= scaleFactor;
-            scale.y *= scaleFactor;
-            scale.z *= scaleFactor;
-
-            // Apply the new scale
-            currentModel.setAttribute('scale', scale);
-
-            // Update the last scale
-            lastScale = event.scale;
-        }
-    });
-});
     </script>
 </body>
 </html>
+
 
 
 
