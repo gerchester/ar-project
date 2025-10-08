@@ -115,7 +115,7 @@ text-align: center;
                 <a-asset-item id="model13" src="./models/model13_lestni_80.glb?v=1"></a-asset-item>
                 <a-asset-item id="model14" src="./models/model14_lestni_100.glb?v=1"></a-asset-item>
                 <a-asset-item id="model15" src="./models/model15_lestni_150.glb?v=1"></a-asset-item>
-                 <a-asset-item id="model16" src="./models/konchenaya_hueta_defeated.glb?v=1"></a-asset-item>
+                 <a-asset-item id="model16" src="./models/konchenaya_hueta_deffeted.glb?v=1"></a-asset-item>
             </a-assets>
 
             <!-- Lighting Setup -->
@@ -125,8 +125,6 @@ text-align: center;
             <a-light type="directional" color="#fff" intensity="1" position="0 3 -4"></a-light>
 
             <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-
-           <a-entity id="displayModelContainer" position="0 0 -2" rotation="0 0 0" scale="1 1 1"></a-entity> 
 
             <!-- Models (removed smooth-rotation) -->
             <a-entity mindar-image-target="targetIndex: 0">
@@ -201,142 +199,178 @@ text-align: center;
     <div class="status" id="status">Наведите камеру на маркер</div>
     <div class="loading" id="loading">Загрузка AR...</div>
     <div class="marker-info" id="markerInfo"></div>
+
+    
     
     <script>
+       
+
     let currentModel = null;
+    const ROTATION_AMOUNT = 15; // degrees per click
 
-document.addEventListener('DOMContentLoaded', function() {
-    const status = document.getElementById('status');
-    const loading = document.getElementById('loading');
-    const sceneEl = document.querySelector('a-scene');
-    const displayContainer = document.getElementById('displayModelContainer');
-
-    // Wait for scene to load first
-    sceneEl.addEventListener('loaded', function() {
-        // Now start AR
-        startAR();
-    });
-
-    function startAR() {
-        status.textContent = 'Requesting camera access...';
+    document.addEventListener('DOMContentLoaded', function() {
+        const status = document.getElementById('status');
+        const loading = document.getElementById('loading');
+        const sceneEl = document.querySelector('a-scene');
         
-        const arSystem = sceneEl.systems["mindar-image-system"];
-        
-        sceneEl.addEventListener('arReady', function() {
-            status.textContent = 'Наведите камеру на маркер';
-            loading.style.display = 'none';
-            console.log('AR is ready');
-        });
-        
-        sceneEl.addEventListener('arError', function(evt) {
-            console.error('AR Error:', evt.detail);
-            status.textContent = 'AR initialization failed: ' + evt.detail;
-            loading.style.display = 'none';
-        });
 
-        // Start AR system - this should trigger camera permission
-        try {
-            arSystem.start();
-            console.log('AR system started');
-        } catch (error) {
-            console.error('Error starting AR:', error);
-            status.textContent = 'Error starting AR: ' + error.message;
-        }
-    }
+    
 
-    // Set up marker detection
-    const markers = document.querySelectorAll('[mindar-image-target]');
-    markers.forEach((marker, index) => {
-        marker.addEventListener('targetFound', function() {
-            status.textContent = 'Маркер ' + index + ' обнаружен';
-
-            const markerModel = marker.querySelector('a-gltf-model');
-            if (!markerModel) return;
-
-            const modelSrc = markerModel.getAttribute('src');
-
-            // Remove any existing model
-            while (displayContainer.firstChild) {
-                displayContainer.removeChild(displayContainer.firstChild);
+        // First request camera permission only
+        async function initAR() {
+            try {
+                loading.style.display = 'block';
+                status.textContent = 'Requesting camera access...';
+                
+                // Request camera access first
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                
+                // Stop the camera stream (MindAR will restart it)
+                stream.getTracks().forEach(track => track.stop());
+                
+                // Now start AR
+                startAR();
+            } catch (error) {
+                console.error('Camera permission error:', error);
+                status.textContent = 'Please allow camera access for AR';
+                loading.style.display = 'none';
             }
-
-            // Create new model
-            const newModel = document.createElement('a-gltf-model');
-            newModel.setAttribute('src', modelSrc);
-            newModel.setAttribute('rotation', '0 0 0');
-            newModel.setAttribute('scale', '1 1 1');
-            displayContainer.appendChild(newModel);
-
-            currentModel = newModel;
-        });
-
-        marker.addEventListener('targetLost', function() {
-            status.textContent = 'Маркер потерян, модель осталась';
+        }
+        
+        function startAR() {
+            status.textContent = 'Loading AR...';
+            
+            // Get the AR system
+            const arSystem = sceneEl.systems["mindar-image-system"];
+            
+            // Event handlers
+            sceneEl.addEventListener('arReady', function() {
+                status.textContent = 'Наведите камеру на маркер';
+                loading.style.display = 'none';
+            });
+            
+            sceneEl.addEventListener('arError', function(evt) {
+                console.error('AR Error:', evt.detail);
+                status.textContent = 'Обновите страницу или отсканируйте Qr-код заново';
+                loading.style.display = 'none';
+            });
+            
+            // Start AR system
+            arSystem.start();
+            
+            // Handle marker detection
+            const markers = document.querySelectorAll('[mindar-image-target]');
+            
+            markers.forEach((marker, index) => {
+                marker.addEventListener('targetFound', function() {
+                    status.textContent = 'Маркер ' + index + ' обнаружен';
+                    // Set the current model to the one that was just found
+                    currentModel = marker.querySelector('a-gltf-model');
+                });
+                
+                marker.addEventListener('targetLost', function() {
+                    status.textContent = 'Point camera at marker';
+                    // Don't clear currentModel immediately, keep the last detected model
+                });
+            });
+        }
+        
+        // Start the initialization process
+        setTimeout(initAR, 500);
+        
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (sceneEl.renderer) {
+                sceneEl.renderer.setSize(window.innerWidth, window.innerHeight);
+            }
         });
     });
-
-    // Set up gesture controls
+        // Wait for the AR scene to load
+document.querySelector('a-scene').addEventListener('loaded', function() {
     const arContainer = document.getElementById('ar-container');
+    let currentModel = null; // This will reference the currently detected model
+
+    // Initialize Hammer.js on the AR container
     const hammerManager = new Hammer.Manager(arContainer);
+
+    // Create and configure the pan gesture for rotation
     const Pan = new Hammer.Pan({ threshold: 0, pointers: 1 });
-    const Pinch = new Hammer.Pinch({ threshold: 0 });
     hammerManager.add(Pan);
+
+    // Create and configure the pinch gesture for scaling
+    const Pinch = new Hammer.Pinch({ threshold: 0 });
     hammerManager.add(Pinch);
 
+    // Listen for marker detection to set the current model
+    const markers = document.querySelectorAll('[mindar-image-target]');
+    markers.forEach((marker) => {
+        marker.addEventListener('targetFound', event => {
+            currentModel = event.target.querySelector('a-gltf-model');
+        });
+        marker.addEventListener('targetLost', event => {
+            // Optional: Keep the last model as current, or set to null
+            // currentModel = null;
+        });
+    });
+
+    // Variables to track the last state
     let lastPanPosition = { x: 0, y: 0 };
     let lastScale = 1;
 
+    // Handle the pan gesture to rotate the model
     hammerManager.on('panstart panmove', function(event) {
         if (!currentModel) return;
 
+        // Get the current rotation
         const rotation = currentModel.getAttribute('rotation');
 
         if (event.type === 'panstart') {
             lastPanPosition.x = event.center.x;
             lastPanPosition.y = event.center.y;
         } else if (event.type === 'panmove') {
+            // Calculate the change in position
             const deltaX = event.center.x - lastPanPosition.x;
             const deltaY = event.center.y - lastPanPosition.y;
 
+            // Update the rotation (adjust the divisor to change sensitivity)
             rotation.y += deltaX * 0.5;
             rotation.x += deltaY * 0.5;
 
+            // Apply the new rotation
             currentModel.setAttribute('rotation', rotation);
+
+            // Update the last position
             lastPanPosition.x = event.center.x;
             lastPanPosition.y = event.center.y;
         }
     });
 
+    // Handle the pinch gesture to scale the model
     hammerManager.on('pinchstart pinchmove', function(event) {
         if (!currentModel) return;
 
+        // Get the current scale
         let scale = currentModel.getAttribute('scale');
 
         if (event.type === 'pinchstart') {
             lastScale = event.scale;
         } else if (event.type === 'pinchmove') {
+            // Calculate the scale factor
             const scaleFactor = event.scale / lastScale;
+
+            // Update the scale uniformly
             scale.x *= scaleFactor;
             scale.y *= scaleFactor;
             scale.z *= scaleFactor;
-            currentModel.setAttribute('scale', scale);
-            lastScale = event.scale;
-        }
-    });
 
-    // Handle window resize
-    window.addEventListener('resize', function() {
-        if (sceneEl.renderer) {
-            sceneEl.renderer.setSize(window.innerWidth, window.innerHeight);
+            // Apply the new scale
+            currentModel.setAttribute('scale', scale);
+
+            // Update the last scale
+            lastScale = event.scale;
         }
     });
 });
     </script>
 </body>
 </html>
-
-
-
-
-
-
