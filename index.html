@@ -261,6 +261,7 @@ text-align: center;
             arSystem.start();
             
            const displayContainer = document.getElementById('displayModelContainer');
+            const markers = document.querySelectorAll('[mindar-image-target]');
 
 markers.forEach((marker, index) => {
   marker.addEventListener('targetFound', function() {
@@ -393,5 +394,6 @@ document.querySelector('a-scene').addEventListener('loaded', function() {
     </script>
 </body>
 </html>
+
 
 
