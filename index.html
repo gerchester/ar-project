@@ -116,7 +116,7 @@ text-align: center;
                 <a-asset-item id="model13" src="./models/model13_lestni_80.glb?v=1"></a-asset-item>
                 <a-asset-item id="model14" src="./models/model14_lestni_100.glb?v=1"></a-asset-item>
                 <a-asset-item id="model15" src="./models/model15_lestni_150.glb?v=1"></a-asset-item>
-                 <a-asset-item id="model16" src="./ani.glb?v=2"></a-asset-item>
+                 <a-asset-item id="model16" src="./models/ani.glb?v=2"></a-asset-item>
             </a-assets>
 
             <!-- Lighting Setup -->
@@ -192,7 +192,8 @@ text-align: center;
         src="#model16" 
         position="0 0 0" 
         scale="1.0 1.0 1.0" 
-        rotation="180 0 0"></a-gltf-model>
+        rotation="180 0 0
+        animation-mixer="clip: *; loop: repeat"></a-gltf-model>
 </a-entity>
         </a-scene>
     </div>
@@ -375,6 +376,7 @@ document.querySelector('a-scene').addEventListener('loaded', function() {
     </script>
 </body>
 </html>
+
 
 
 
