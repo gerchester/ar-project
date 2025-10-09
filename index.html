@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,10 +7,9 @@
     <title>WebAR with Rotation Controls</title>
     <script src="./aframe.min.js"></script>
     <script src="./mindar-image-aframe.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/[email protected]/dist/aframe-extras.min.js"></script>
     <script src="./hammer.min.js"></script>
-   
     <style>
-        /* Your existing CSS remains the same */
         * {
             margin: 0;
             padding: 0;
@@ -45,7 +45,7 @@
             z-index: 100;
             pointer-events: none;
             max-width: 80%;
-            text-align: center;
+text-align: center;
         }
         
         .loading {
@@ -77,6 +77,9 @@
             text-align: center;
             max-width: 80%;
         }
+        
+     
+
     </style>
 </head>
 <body>
@@ -100,7 +103,21 @@
             <a-assets>
                 <a-asset-item id="model1" src="./models/model1_Lotok_gluhoy50.glb?v=1"></a-asset-item>
                 <a-asset-item id="model2" src="./models/model2_Lotok_gluhoy65.glb?v=1"></a-asset-item>
-            </a-assets> <!-- FIXED: Added closing tag -->
+                <a-asset-item id="model3" src="./models/model3_Lotok_gluhoy80.glb?v=1"></a-asset-item>
+                <a-asset-item id="model4" src="./models/model4_Lotok_gluhoy100.glb?v=1"></a-asset-item>
+                <a-asset-item id="model5" src="./models/model5_Lotok_gluhoy150.glb?v=1"></a-asset-item>
+                <a-asset-item id="model6" src="./models/model6_Lotok_perf50.glb?v=1"></a-asset-item>
+                <a-asset-item id="model7" src="./models/model7_Lotok_perf65.glb?v=1"></a-asset-item>
+                <a-asset-item id="model8" src="./models/model8_Lotok_perf80.glb?v=1"></a-asset-item>
+                <a-asset-item id="model9" src="./models/model9_Lotok_perf100.glb?v=1"></a-asset-item>
+                <a-asset-item id="model10" src="./models/model10_Lotok_perf150.glb?v=1"></a-asset-item>
+                <a-asset-item id="model11" src="./models/model11_lestni_50.glb?v=1"></a-asset-item>
+                <a-asset-item id="model12" src="./models/model12_lestni_65.glb?v=1"></a-asset-item>
+                <a-asset-item id="model13" src="./models/model13_lestni_80.glb?v=1"></a-asset-item>
+                <a-asset-item id="model14" src="./models/model14_lestni_100.glb?v=1"></a-asset-item>
+                <a-asset-item id="model15" src="./models/model15_lestni_150.glb?v=1"></a-asset-item>
+                 <a-asset-item id="model16" src="./models/strutani.glb?v=1"></a-asset-item>
+            </a-assets>
 
             <!-- Lighting Setup -->
             <a-light type="ambient" color="#FFF" intensity="2.5"></a-light>
@@ -110,14 +127,75 @@
 
             <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-         <a-entity mindar-image-target="targetIndex: 0">
-  <a-entity id="model-0" gltf-model="#model1" position="0 0 0" scale="1 1 1" rotation="0 0 0" visible="false"></a-entity>
-</a-entity>
+            <!-- Models (removed smooth-rotation) -->
+            <a-entity mindar-image-target="targetIndex: 0">
+                <a-gltf-model src="#model1" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
+            </a-entity>
 
-<a-entity mindar-image-target="targetIndex: 1">
-  <a-entity id="model-1" gltf-model="#model2" position="0 0 0" scale="1 1 1" rotation="0 0 0" visible="false"></a-entity>
-</a-entity>
+            <a-entity mindar-image-target="targetIndex: 1">
+                <a-gltf-model src="#model2" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
+            </a-entity>
+
+            <a-entity mindar-image-target="targetIndex: 2">
+                <a-gltf-model src="#model3" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
+            </a-entity>
+
+            <a-entity mindar-image-target="targetIndex: 3">
+                <a-gltf-model src="#model4" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
+            </a-entity>
+
+            <a-entity mindar-image-target="targetIndex: 4">
+                <a-gltf-model src="#model5" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
+            </a-entity>
+
+            <a-entity mindar-image-target="targetIndex: 5">
+                <a-gltf-model src="#model6" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
+            </a-entity>
+
+            <a-entity mindar-image-target="targetIndex: 6">
+                <a-gltf-model src="#model7" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
+            </a-entity>
+
+            <a-entity mindar-image-target="targetIndex: 7">
+                <a-gltf-model src="#model8" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
+            </a-entity>
+
+            <a-entity mindar-image-target="targetIndex: 8">
+                <a-gltf-model src="#model9" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
+            </a-entity>
+
+            <a-entity mindar-image-target="targetIndex: 9">
+                <a-gltf-model src="#model10" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
+            </a-entity>
             
+            <a-entity mindar-image-target="targetIndex: 10">
+                <a-gltf-model src="#model11" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
+            </a-entity>
+
+            <a-entity mindar-image-target="targetIndex: 11">
+                <a-gltf-model src="#model12" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
+            </a-entity>
+
+            <a-entity mindar-image-target="targetIndex: 12">
+                <a-gltf-model src="#model13" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
+            </a-entity>
+
+            <a-entity mindar-image-target="targetIndex: 13 ">
+                <a-gltf-model src="#model14" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
+            </a-entity>
+
+            <a-entity mindar-image-target="targetIndex: 14">
+                <a-gltf-model src="#model15" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
+            </a-entity>
+            <a-entity mindar-image-target="targetIndex: 15">
+  <a-gltf-model
+    src="#model16"
+    position="0 0 0"
+    scale="1 1 1"
+    rotation="0 0 0"
+    animation-mixer="loop: repeat; clip: CombinedAction">
+  </a-gltf-model>
+</a-entity>
         </a-scene>
     </div>
     
@@ -125,141 +203,177 @@
     <div class="loading" id="loading">Загрузка AR...</div>
     <div class="marker-info" id="markerInfo"></div>
 
+    
+    
     <script>
-        let currentModel = null; // SINGLE declaration at top level
-        const ROTATION_AMOUNT = 15;
+       
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const status = document.getElementById('status');
-            const loading = document.getElementById('loading');
-            const sceneEl = document.querySelector('a-scene');
+    let currentModel = null;
+    const ROTATION_AMOUNT = 15; // degrees per click
 
-            async function initAR() {
-                try {
-                    loading.style.display = 'block';
-                    status.textContent = 'Requesting camera access...';
-                    
-                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                    stream.getTracks().forEach(track => track.stop());
-                    startAR();
-                } catch (error) {
-                    console.error('Camera permission error:', error);
-                    status.textContent = 'Please allow camera access for AR';
-                    loading.style.display = 'none';
-                }
+    document.addEventListener('DOMContentLoaded', function() {
+        const status = document.getElementById('status');
+        const loading = document.getElementById('loading');
+        const sceneEl = document.querySelector('a-scene');
+        
+
+    
+
+        // First request camera permission only
+        async function initAR() {
+            try {
+                loading.style.display = 'block';
+                status.textContent = 'Requesting camera access...';
+                
+                // Request camera access first
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                
+                // Stop the camera stream (MindAR will restart it)
+                stream.getTracks().forEach(track => track.stop());
+                
+                // Now start AR
+                startAR();
+            } catch (error) {
+                console.error('Camera permission error:', error);
+                status.textContent = 'Please allow camera access for AR';
+                loading.style.display = 'none';
             }
+        }
+        
+        function startAR() {
+            status.textContent = 'Loading AR...';
             
-            function startAR() {
-                status.textContent = 'Loading AR...';
-                const arSystem = sceneEl.systems["mindar-image-system"];
-                
-                sceneEl.addEventListener('arReady', function() {
-                    status.textContent = 'Наведите камеру на маркер';
-                    loading.style.display = 'none';
-                });
-                
-                sceneEl.addEventListener('arError', function(evt) {
-                    console.error('AR Error:', evt.detail);
-                    status.textContent = 'Обновите страницу или отсканируйте Qr-код заново';
-                    loading.style.display = 'none';
-                });
-                
-                arSystem.start();
-                
-                // Marker detection — теперь берём модель изнутри маркера
-const markers = document.querySelectorAll('[mindar-image-target]');
-markers.forEach((marker, index) => {
-  const model = marker.querySelector('#model-' + index);
-
-  marker.addEventListener('targetFound', () => {
-    console.log('Marker found:', index);
-    status.textContent = 'Маркер ' + index + ' обнаружен';
-
-    if (model) {
-      model.setAttribute('visible', 'true');
-      currentModel = model; // запоминаем текущую модель для вращения
-    }
-  });
-
-  marker.addEventListener('targetLost', () => {
-    console.log('Marker lost:', index);
-    // ничего не скрываем, модель остаётся
-  });
-});
-            }
+            // Get the AR system
+            const arSystem = sceneEl.systems["mindar-image-system"];
             
-            // Start initialization
-            setTimeout(initAR, 500);
-            
-            window.addEventListener('resize', function() {
-                if (sceneEl.renderer) {
-                    sceneEl.renderer.setSize(window.innerWidth, window.innerHeight);
-                }
+            // Event handlers
+            sceneEl.addEventListener('arReady', function() {
+                status.textContent = 'Наведите камеру на маркер';
+                loading.style.display = 'none';
             });
+            
+            sceneEl.addEventListener('arError', function(evt) {
+                console.error('AR Error:', evt.detail);
+                status.textContent = 'Обновите страницу или отсканируйте Qr-код заново';
+                loading.style.display = 'none';
+            });
+            
+            // Start AR system
+            arSystem.start();
+            
+            // Handle marker detection
+            const markers = document.querySelectorAll('[mindar-image-target]');
+            
+            markers.forEach((marker, index) => {
+                marker.addEventListener('targetFound', function() {
+                    status.textContent = 'Маркер ' + index + ' обнаружен';
+                    // Set the current model to the one that was just found
+                    currentModel = marker.querySelector('a-gltf-model');
+                });
+                
+                marker.addEventListener('targetLost', function() {
+                    status.textContent = 'Point camera at marker';
+                    // Don't clear currentModel immediately, keep the last detected model
+                });
+            });
+        }
+        
+        // Start the initialization process
+        setTimeout(initAR, 500);
+        
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (sceneEl.renderer) {
+                sceneEl.renderer.setSize(window.innerWidth, window.innerHeight);
+            }
         });
-
+    });
         // Wait for the AR scene to load
-        document.querySelector('a-scene').addEventListener('loaded', function() {
-            const arContainer = document.getElementById('ar-container');
-            
-            // REMOVED: let currentModel = null; // DELETE THIS LINE - we use the global one
+document.querySelector('a-scene').addEventListener('loaded', function() {
+    const arContainer = document.getElementById('ar-container');
+    let currentModel = null; // This will reference the currently detected model
 
-            // Initialize Hammer.js
-            const hammerManager = new Hammer.Manager(arContainer);
-            const Pan = new Hammer.Pan({ threshold: 0, pointers: 1 });
-            const Pinch = new Hammer.Pinch({ threshold: 0 });
-            hammerManager.add(Pan);
-            hammerManager.add(Pinch);
+    // Initialize Hammer.js on the AR container
+    const hammerManager = new Hammer.Manager(arContainer);
 
-            // REMOVED: the duplicate marker event listeners here
-            // We already set currentModel in the main detection code above
+    // Create and configure the pan gesture for rotation
+    const Pan = new Hammer.Pan({ threshold: 0, pointers: 1 });
+    hammerManager.add(Pan);
 
-            let lastPanPosition = { x: 0, y: 0 };
-            let lastScale = 1;
+    // Create and configure the pinch gesture for scaling
+    const Pinch = new Hammer.Pinch({ threshold: 0 });
+    hammerManager.add(Pinch);
 
-            // Gesture controls - uses the GLOBAL currentModel
-            hammerManager.on('panstart panmove', function(event) {
-                if (!currentModel) return;
-
-                const rotation = currentModel.getAttribute('rotation');
-
-                if (event.type === 'panstart') {
-                    lastPanPosition.x = event.center.x;
-                    lastPanPosition.y = event.center.y;
-                } else if (event.type === 'panmove') {
-                    const deltaX = event.center.x - lastPanPosition.x;
-                    const deltaY = event.center.y - lastPanPosition.y;
-
-                    rotation.y += deltaX * 0.5;
-                    rotation.x += deltaY * 0.5;
-
-                    currentModel.setAttribute('rotation', rotation);
-
-                    lastPanPosition.x = event.center.x;
-                    lastPanPosition.y = event.center.y;
-                }
-            });
-
-            hammerManager.on('pinchstart pinchmove', function(event) {
-                if (!currentModel) return;
-
-                let scale = currentModel.getAttribute('scale');
-
-                if (event.type === 'pinchstart') {
-                    lastScale = event.scale;
-                } else if (event.type === 'pinchmove') {
-                    const scaleFactor = event.scale / lastScale;
-
-                    scale.x *= scaleFactor;
-                    scale.y *= scaleFactor;
-                    scale.z *= scaleFactor;
-
-                    currentModel.setAttribute('scale', scale);
-                    lastScale = event.scale;
-                }
-            });
+    // Listen for marker detection to set the current model
+    const markers = document.querySelectorAll('[mindar-image-target]');
+    markers.forEach((marker) => {
+        marker.addEventListener('targetFound', event => {
+            currentModel = event.target.querySelector('a-gltf-model');
         });
+        marker.addEventListener('targetLost', event => {
+            // Optional: Keep the last model as current, or set to null
+            // currentModel = null;
+        });
+    });
+
+    // Variables to track the last state
+    let lastPanPosition = { x: 0, y: 0 };
+    let lastScale = 1;
+
+    // Handle the pan gesture to rotate the model
+    hammerManager.on('panstart panmove', function(event) {
+        if (!currentModel) return;
+
+        // Get the current rotation
+        const rotation = currentModel.getAttribute('rotation');
+
+        if (event.type === 'panstart') {
+            lastPanPosition.x = event.center.x;
+            lastPanPosition.y = event.center.y;
+        } else if (event.type === 'panmove') {
+            // Calculate the change in position
+            const deltaX = event.center.x - lastPanPosition.x;
+            const deltaY = event.center.y - lastPanPosition.y;
+
+            // Update the rotation (adjust the divisor to change sensitivity)
+            rotation.y += deltaX * 0.5;
+            rotation.x += deltaY * 0.5;
+
+            // Apply the new rotation
+            currentModel.setAttribute('rotation', rotation);
+
+            // Update the last position
+            lastPanPosition.x = event.center.x;
+            lastPanPosition.y = event.center.y;
+        }
+    });
+
+    // Handle the pinch gesture to scale the model
+    hammerManager.on('pinchstart pinchmove', function(event) {
+        if (!currentModel) return;
+
+        // Get the current scale
+        let scale = currentModel.getAttribute('scale');
+
+        if (event.type === 'pinchstart') {
+            lastScale = event.scale;
+        } else if (event.type === 'pinchmove') {
+            // Calculate the scale factor
+            const scaleFactor = event.scale / lastScale;
+
+            // Update the scale uniformly
+            scale.x *= scaleFactor;
+            scale.y *= scaleFactor;
+            scale.z *= scaleFactor;
+
+            // Apply the new scale
+            currentModel.setAttribute('scale', scale);
+
+            // Update the last scale
+            lastScale = event.scale;
+        }
+    });
+});
     </script>
 </body>
 </html>
-
