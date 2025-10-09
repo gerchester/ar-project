@@ -117,6 +117,9 @@ text-align: center;
                 <a-asset-item id="model14" src="./models/model14_lestni_100.glb?v=1"></a-asset-item>
                 <a-asset-item id="model15" src="./models/model15_lestni_150.glb?v=1"></a-asset-item>
                  <a-asset-item id="model16" src="./models/ani.glb?v=2"></a-asset-item>
+                 <a-asset-item id="model17" src="./models/strut21.glb?v=1"></a-asset-item>
+                 <a-asset-item id="model18" src="./models/strut41.glb?v=1"></a-asset-item>
+                 <a-asset-item id="model19" src="./models/strut82.glb?v=1"></a-asset-item>
             </a-assets>
 
             <!-- Lighting Setup -->
@@ -194,6 +197,15 @@ text-align: center;
         scale="1.0 1.0 1.0" 
         rotation="180 0 0"></a-gltf-model>
 </a-entity>
+            <a-entity mindar-image-target="targetIndex: 16">
+                <a-gltf-model src="#model17" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
+            </a-entity>
+            <a-entity mindar-image-target="targetIndex: 17">
+                <a-gltf-model src="#model18" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
+            </a-entity>
+            <a-entity mindar-image-target="targetIndex: 18">
+                <a-gltf-model src="#model19" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
+            </a-entity>
         </a-scene>
     </div>
     
@@ -375,6 +387,7 @@ document.querySelector('a-scene').addEventListener('loaded', function() {
     </script>
 </body>
 </html>
+
 
 
 
