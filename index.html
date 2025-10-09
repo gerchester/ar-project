@@ -196,7 +196,9 @@ text-align: center;
         position="0 0 0" 
         scale="1.0 1.0 1.0" 
         rotation="180 0 0"
-        animation-mixer="clip: *"></a-gltf-model>
+        animation-mixer
+        auto-play-animation>
+    </a-gltf-model>
 </a-entity>
             <a-entity mindar-image-target="targetIndex: 16">
                 <a-gltf-model src="#model17" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
@@ -221,7 +223,20 @@ text-align: center;
 
     let currentModel = null;
     const ROTATION_AMOUNT = 15; // degrees per click
-
+// Регистрируем компонент для автозапуска анимации
+AFRAME.registerComponent('auto-play-animation', {
+    init: function() {
+        this.el.addEventListener('model-loaded', () => {
+            console.log('Model loaded, starting animation');
+            const mixer = this.el.components['animation-mixer'];
+            if (mixer) {
+                console.log('Animation mixer found');
+            } else {
+                console.log('Animation mixer NOT found');
+            }
+        });
+    }
+});
     document.addEventListener('DOMContentLoaded', function() {
         const status = document.getElementById('status');
         const loading = document.getElementById('loading');
@@ -388,6 +403,7 @@ document.querySelector('a-scene').addEventListener('loaded', function() {
     </script>
 </body>
 </html>
+
 
 
 
