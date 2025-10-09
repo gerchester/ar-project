@@ -1,3 +1,9 @@
+Перейти на версию для людей с ограниченными возможностями.
+<Без темы>
+Добавить категорию письма
+Гриша Смирнов
+Сегодня, 11:30
+Кому:вам
 <!DOCTYPE html>
 
 <html lang="en">
@@ -186,37 +192,45 @@
                     console.log('Marker found:', index);
                     status.textContent = 'Маркер ' + index + ' обнаружен';
                     
-                    // Если модель еще не отвязана, создаем отвязанную копию
+                    // Показываем модель на маркере
+                    markerModel.setAttribute('visible', 'true');
+                    
+                    // Если модель еще не отвязана, создаем отвязанную копию с задержкой
                     if (!detachedModels[index]) {
-                        // Получаем мировую позицию маркера
-                        const worldPosition = new THREE.Vector3();
-                        markerModel.object3D.getWorldPosition(worldPosition);
-                        
-                        const worldRotation = new THREE.Euler();
-                        markerModel.object3D.getWorldRotation(worldRotation);
-                        
-                        const worldScale = new THREE.Vector3();
-                        markerModel.object3D.getWorldScale(worldScale);
-                        
-                        // Создаем новую отвязанную модель
-                        const detachedModel = document.createElement('a-entity');
-                        detachedModel.setAttribute('gltf-model', index === 0 ? '#model1' : '#model2');
-                        detachedModel.setAttribute('position', worldPosition);
-                        detachedModel.setAttribute('rotation', {
-                            x: THREE.MathUtils.radToDeg(worldRotation.x),
-                            y: THREE.MathUtils.radToDeg(worldRotation.y),
-                            z: THREE.MathUtils.radToDeg(worldRotation.z)
-                        });
-                        detachedModel.setAttribute('scale', worldScale);
-                        detachedModel.setAttribute('visible', 'true');
-                        detachedModel.classList.add('detached-model');
-                        detachedModel.setAttribute('data-index', index);
-                        
-                        detachedContainer.appendChild(detachedModel);
-                        detachedModels[index] = detachedModel;
-                        currentModel = detachedModel;
-                        
-                        console.log('Создана отвязанная модель:', index, 'на позиции:', worldPosition);
+                        setTimeout(() => {
+                            // Получаем мировую позицию маркера
+                            const worldPosition = new THREE.Vector3();
+                            markerModel.object3D.getWorldPosition(worldPosition);
+                            
+                            const worldRotation = new THREE.Euler();
+                            markerModel.object3D.getWorldRotation(worldRotation);
+                            
+                            const worldScale = new THREE.Vector3();
+                            markerModel.object3D.getWorldScale(worldScale);
+                            
+                            // Скрываем модель на маркере
+                            markerModel.setAttribute('visible', 'false');
+                            
+                            // Создаем новую отвязанную модель
+                            const detachedModel = document.createElement('a-entity');
+                            detachedModel.setAttribute('gltf-model', index === 0 ? '#model1' : '#model2');
+                            detachedModel.setAttribute('position', worldPosition);
+                            detachedModel.setAttribute('rotation', {
+                                x: THREE.MathUtils.radToDeg(worldRotation.x),
+                                y: THREE.MathUtils.radToDeg(worldRotation.y),
+                                z: THREE.MathUtils.radToDeg(worldRotation.z)
+                            });
+                            detachedModel.setAttribute('scale', worldScale);
+                            detachedModel.setAttribute('visible', 'true');
+                            detachedModel.classList.add('detached-model');
+                            detachedModel.setAttribute('data-index', index);
+                            
+                            detachedContainer.appendChild(detachedModel);
+                            detachedModels[index] = detachedModel;
+                            currentModel = detachedModel;
+                            
+                            console.log('Создана отвязанная модель:', index, 'на позиции:', worldPosition);
+                        }, 500); // Задержка 500мс для стабилизации позиции
                     } else {
                         // Если модель уже существует, просто делаем ее текущей
                         currentModel = detachedModels[index];
@@ -225,7 +239,8 @@
                 
                 marker.addEventListener('targetLost', () => {
                     console.log('Marker lost:', index);
-                    // Модель остается на месте, ничего не делаем
+                    markerModel.setAttribute('visible', 'false');
+                    // Отвязанная модель остается на месте
                 });
             });
         }
@@ -297,6 +312,12 @@
         });
     });
 </script>
+```
 
 </body>
 </html>
+
+
+
+Отправлено из мобильной Почты Mail
+
