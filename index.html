@@ -196,8 +196,7 @@ text-align: center;
         position="0 0 0" 
         scale="1.0 1.0 1.0" 
         rotation="180 0 0"
-        animation-mixer
-        auto-play-animation>
+       animation-mixer="clip: CubeAction; loop: once; clampWhenFinished: true; timeScale: 0">
     </a-gltf-model>
 </a-entity>
             <a-entity mindar-image-target="targetIndex: 16">
@@ -403,6 +402,7 @@ document.querySelector('a-scene').addEventListener('loaded', function() {
     </script>
 </body>
 </html>
+
 
 
 
