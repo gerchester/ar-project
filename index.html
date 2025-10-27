@@ -121,7 +121,7 @@ text-align: center;
                  <a-asset-item id="model18" src="./models/strut41.glb?v=1"></a-asset-item>
                  <a-asset-item id="model19" src="./models/strut82.glb?v=1"></a-asset-item>
                  <a-asset-item id="model20" src="./models/lotok_dno3.glb?v=2"></a-asset-item>
-                <a-asset-item id="model21" src="./models/anidone3.glb?v=2"></a-asset-item>
+                <a-asset-item id="model21" src="./models/merged.glb?v=2"></a-asset-item>
             </a-assets>
 
             <!-- Lighting Setup -->
@@ -225,7 +225,7 @@ text-align: center;
         position="0 0 0" 
         scale="1.0 1.0 1.0" 
         rotation="0 0 0"
-         animation-mixer="loop: repeat">
+         animation-mixer="clip: ani; loop: repeat">
     </a-gltf-model>
 </a-entity>
         </a-scene>
@@ -422,6 +422,7 @@ document.querySelector('a-scene').addEventListener('loaded', function() {
     </script>
 </body>
 </html>
+
 
 
 
