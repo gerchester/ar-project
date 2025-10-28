@@ -82,40 +82,47 @@
                 console.log("Gesture controls initialized");
             }
 
-            // SIMPLE FIX: Place model in front of camera
-           function detachModel() {
-    const marker = document.querySelector('[mindar-image-target]');
-    const originalModel = marker.querySelector('a-gltf-model');
+            // FIXED: Completely remove original model from marker
+            function detachModel() {
+                const marker = document.querySelector('[mindar-image-target]');
+                const originalModel = marker.querySelector('a-gltf-model');
 
-    if (!originalModel) return null;
+                if (!originalModel) return null;
 
-    const scene = document.querySelector('a-scene');
-    const persistentContainer = document.getElementById('persistent-model-container');
+                const persistentContainer = document.getElementById('persistent-model-container');
 
-    // создаём новую модель
-    const newModel = document.createElement('a-entity');
-    newModel.setAttribute('gltf-model', '#model1');
-    newModel.setAttribute('scale', '1 1 1');
-    newModel.setAttribute('rotation', '0 0 0');
+                // Create new model
+                const newModel = document.createElement('a-entity');
+                newModel.setAttribute('gltf-model', '#model1');
+                newModel.setAttribute('scale', '1 1 1');
+                newModel.setAttribute('rotation', '0 0 0');
 
-    // позиция — перед камерой, но в мировых координатах
-    const camera = document.querySelector('a-camera');
-    const cameraObj = camera.object3D;
-    const pos = new THREE.Vector3(0, 0, -1); // 1 метр вперёд
-    pos.applyMatrix4(cameraObj.matrixWorld);  // перевести в мировые координаты
+                // Get camera position and place model in front of it
+                const camera = document.querySelector('a-camera');
+                const cameraWorldPos = new THREE.Vector3();
+                camera.object3D.getWorldPosition(cameraWorldPos);
+                
+                // Calculate position 1 meter in front of camera
+                const cameraDirection = new THREE.Vector3();
+                camera.object3D.getWorldDirection(cameraDirection);
+                const modelPosition = new THREE.Vector3()
+                    .copy(cameraWorldPos)
+                    .add(cameraDirection.multiplyScalar(-1)); // -1 meter in front
 
-    newModel.object3D.position.copy(pos);
-    console.log("Model world position:", newModel.object3D.position).            
+                newModel.setAttribute('position', modelPosition);
 
-    // добавить в persistent контейнер (в сцену)
-    persistentContainer.appendChild(newModel);
+                // Add to persistent container
+                persistentContainer.appendChild(newModel);
 
-    // просто скрыть оригинал, не удаляя
-    originalModel.setAttribute('visible', 'false');
+                // CRITICAL FIX: COMPLETELY REMOVE original model from marker
+                if (originalModel.parentNode) {
+                    originalModel.parentNode.removeChild(originalModel);
+                    console.log("Original model completely removed from marker");
+                }
 
-    console.log("✅ Model detached and placed in front of camera");
-    return newModel;
-}
+                console.log("✅ Model detached and independent from marker");
+                return newModel;
+            }
 
             // Start AR
             async function startAR() {
@@ -136,13 +143,15 @@
                         if (!modelDetached) {
                             status.textContent = 'Marker detected - detaching model';
                             
-                            // No delay needed - just detach immediately
-                            currentModel = detachModel();
-                            if (currentModel) {
-                                modelDetached = true;
-                                status.textContent = 'Model detached - use gestures to rotate/scale';
-                                initGestures();
-                            }
+                            // Small delay to ensure model is positioned by MindAR
+                            setTimeout(() => {
+                                currentModel = detachModel();
+                                if (currentModel) {
+                                    modelDetached = true;
+                                    status.textContent = 'Model detached - use gestures to rotate/scale';
+                                    initGestures();
+                                }
+                            }, 100);
                         } else {
                             status.textContent = 'Model already detached';
                         }
@@ -150,7 +159,7 @@
 
                     marker.addEventListener('targetLost', () => {
                         // Do nothing - model should stay visible
-                        console.log("Marker lost but model stays");
+                        console.log("Marker lost but detached model stays");
                     });
 
                     arSystem.start();
@@ -169,6 +178,3 @@
     </script>
 </body>
 </html>
-
-
-
