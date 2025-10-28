@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
     <script src="./hammer.min.js"></script>
     <style>
+        /* Your existing CSS remains the same */
         * {
             margin: 0;
             padding: 0;
@@ -123,7 +124,7 @@
         // Global variables
         let currentModel = null;
         let isModelDetached = false;
-        const ROTATION_AMOUNT = 15; // degrees per click
+        let hammerManager = null; // Single instance for gesture controls
 
         // Auto-play animation component
         AFRAME.registerComponent('auto-play-animation', {
@@ -140,50 +141,48 @@
             }
         });
 
-        // Detachment functionality
+        // Detachment functionality - SIMPLIFIED VERSION
         function detachModelFromMarker(marker) {
             const model = marker.querySelector('a-gltf-model');
             if (!model) return null;
 
-            // Get world position and rotation
-            const worldPos = new THREE.Vector3();
-            const worldRot = new THREE.Quaternion();
-            model.object3D.getWorldPosition(worldPos);
-            model.object3D.getWorldQuaternion(worldRot);
+            console.log("Detaching model from marker");
 
-            // Create a new entity for the detached model
+            // Create a clone of the model
             const detachedModel = document.createElement('a-entity');
             detachedModel.setAttribute('gltf-model', model.getAttribute('gltf-model'));
             detachedModel.setAttribute('scale', model.getAttribute('scale'));
             detachedModel.setAttribute('rotation', model.getAttribute('rotation'));
-            detachedModel.setAttribute('position', {
-                x: worldPos.x,
-                y: worldPos.y, 
-                z: worldPos.z
-            });
             
-            // Copy the rotation
-            const rotation = model.getAttribute('rotation');
-            detachedModel.setAttribute('rotation', rotation);
+            // Get the marker's position to place the model in the same spot
+            const markerPosition = marker.object3D.getWorldPosition(new THREE.Vector3());
+            detachedModel.setAttribute('position', {
+                x: markerPosition.x,
+                y: markerPosition.y, 
+                z: markerPosition.z
+            });
 
             // Add to scene
             document.querySelector('a-scene').appendChild(detachedModel);
 
-            // Remove original model from marker
-            marker.removeChild(model);
+            console.log("Model detached and added to scene");
 
             return detachedModel;
         }
 
-        // Function to setup gestures for detached model
-        function setupGestureControlsForDetachedModel(detachedModel) {
+        // Single gesture control setup
+        function setupGestureControls() {
             const arContainer = document.getElementById('ar-container');
-            const hammerManager = new Hammer.Manager(arContainer);
+            
+            // Clean up existing hammer manager
+            if (hammerManager) {
+                hammerManager.destroy();
+            }
 
-            // Remove existing hammer managers if any
-            hammerManager.destroy();
+            // Create new hammer manager
+            hammerManager = new Hammer.Manager(arContainer);
 
-            // Create new gestures
+            // Create gestures
             const Pan = new Hammer.Pan({ threshold: 0, pointers: 1 });
             const Pinch = new Hammer.Pinch({ threshold: 0 });
             
@@ -195,9 +194,9 @@
 
             // Pan for rotation
             hammerManager.on('panstart panmove', function(event) {
-                if (!detachedModel) return;
+                if (!currentModel) return;
 
-                const rotation = detachedModel.getAttribute('rotation');
+                const rotation = currentModel.getAttribute('rotation');
 
                 if (event.type === 'panstart') {
                     lastPanPosition.x = event.center.x;
@@ -209,7 +208,7 @@
                     rotation.y += deltaX * 0.5;
                     rotation.x += deltaY * 0.5;
 
-                    detachedModel.setAttribute('rotation', rotation);
+                    currentModel.setAttribute('rotation', rotation);
 
                     lastPanPosition.x = event.center.x;
                     lastPanPosition.y = event.center.y;
@@ -218,9 +217,9 @@
 
             // Pinch for scale
             hammerManager.on('pinchstart pinchmove', function(event) {
-                if (!detachedModel) return;
+                if (!currentModel) return;
 
-                let scale = detachedModel.getAttribute('scale');
+                let scale = currentModel.getAttribute('scale');
 
                 if (event.type === 'pinchstart') {
                     lastScale = event.scale;
@@ -231,12 +230,12 @@
                     scale.y *= scaleFactor;
                     scale.z *= scaleFactor;
 
-                    // Optional: Add scale limits
+                    // Add scale limits
                     scale.x = Math.max(0.1, Math.min(5, scale.x));
                     scale.y = Math.max(0.1, Math.min(5, scale.y));
                     scale.z = Math.max(0.1, Math.min(5, scale.z));
 
-                    detachedModel.setAttribute('scale', scale);
+                    currentModel.setAttribute('scale', scale);
                     lastScale = event.scale;
                 }
             });
@@ -247,6 +246,11 @@
             const status = document.getElementById('status');
             const loading = document.getElementById('loading');
             const sceneEl = document.querySelector('a-scene');
+
+            // Setup gesture controls once
+            sceneEl.addEventListener('loaded', function() {
+                setupGestureControls();
+            });
 
             // First request camera permission only
             async function initAR() {
@@ -298,6 +302,9 @@
                         status.textContent = 'Маркер ' + index + ' обнаружен';
                         
                         if (!isModelDetached) {
+                            // Set current model to the one attached to marker initially
+                            currentModel = marker.querySelector('a-gltf-model');
+                            
                             // Small delay to ensure model is properly positioned
                             setTimeout(() => {
                                 const detachedModel = detachModelFromMarker(marker);
@@ -306,8 +313,7 @@
                                     isModelDetached = true;
                                     status.textContent = 'Модель зафиксирована на экране';
                                     
-                                    // Update gesture controls to use the detached model
-                                    setupGestureControlsForDetachedModel(detachedModel);
+                                    // No need to setup new gesture controls - they're already using currentModel
                                 }
                             }, 100);
                         }
@@ -316,6 +322,7 @@
                     marker.addEventListener('targetLost', function() {
                         if (!isModelDetached) {
                             status.textContent = 'Point camera at marker';
+                            currentModel = null;
                         }
                     });
                 });
@@ -328,80 +335,6 @@
             window.addEventListener('resize', function() {
                 if (sceneEl.renderer) {
                     sceneEl.renderer.setSize(window.innerWidth, window.innerHeight);
-                }
-            });
-        });
-
-        // Initial gesture controls (for before detachment)
-        document.querySelector('a-scene').addEventListener('loaded', function() {
-            const arContainer = document.getElementById('ar-container');
-            
-            // Initialize Hammer.js on the AR container
-            const hammerManager = new Hammer.Manager(arContainer);
-
-            // Create and configure the pan gesture for rotation
-            const Pan = new Hammer.Pan({ threshold: 0, pointers: 1 });
-            hammerManager.add(Pan);
-
-            // Create and configure the pinch gesture for scaling
-            const Pinch = new Hammer.Pinch({ threshold: 0 });
-            hammerManager.add(Pinch);
-
-            // Variables to track the last state
-            let lastPanPosition = { x: 0, y: 0 };
-            let lastScale = 1;
-
-            // Handle the pan gesture to rotate the model
-            hammerManager.on('panstart panmove', function(event) {
-                if (!currentModel) return;
-
-                // Get the current rotation
-                const rotation = currentModel.getAttribute('rotation');
-
-                if (event.type === 'panstart') {
-                    lastPanPosition.x = event.center.x;
-                    lastPanPosition.y = event.center.y;
-                } else if (event.type === 'panmove') {
-                    // Calculate the change in position
-                    const deltaX = event.center.x - lastPanPosition.x;
-                    const deltaY = event.center.y - lastPanPosition.y;
-
-                    // Update the rotation (adjust the divisor to change sensitivity)
-                    rotation.y += deltaX * 0.5;
-                    rotation.x += deltaY * 0.5;
-
-                    // Apply the new rotation
-                    currentModel.setAttribute('rotation', rotation);
-
-                    // Update the last position
-                    lastPanPosition.x = event.center.x;
-                    lastPanPosition.y = event.center.y;
-                }
-            });
-
-            // Handle the pinch gesture to scale the model
-            hammerManager.on('pinchstart pinchmove', function(event) {
-                if (!currentModel) return;
-
-                // Get the current scale
-                let scale = currentModel.getAttribute('scale');
-
-                if (event.type === 'pinchstart') {
-                    lastScale = event.scale;
-                } else if (event.type === 'pinchmove') {
-                    // Calculate the scale factor
-                    const scaleFactor = event.scale / lastScale;
-
-                    // Update the scale uniformly
-                    scale.x *= scaleFactor;
-                    scale.y *= scaleFactor;
-                    scale.z *= scaleFactor;
-
-                    // Apply the new scale
-                    currentModel.setAttribute('scale', scale);
-
-                    // Update the last scale
-                    lastScale = event.scale;
                 }
             });
         });
