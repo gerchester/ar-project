@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -45,7 +44,7 @@
             z-index: 100;
             pointer-events: none;
             max-width: 80%;
-text-align: center;
+            text-align: center;
         }
         
         .loading {
@@ -77,9 +76,6 @@ text-align: center;
             text-align: center;
             max-width: 80%;
         }
-        
-     
-
     </style>
 </head>
 <body>
@@ -102,26 +98,6 @@ text-align: center;
              
             <a-assets>
                 <a-asset-item id="model1" src="./models/model1_Lotok_gluhoy50.glb?v=1"></a-asset-item>
-                <a-asset-item id="model2" src="./models/model2_Lotok_gluhoy65.glb?v=1"></a-asset-item>
-                <a-asset-item id="model3" src="./models/model3_Lotok_gluhoy80.glb?v=1"></a-asset-item>
-                <a-asset-item id="model4" src="./models/model4_Lotok_gluhoy100.glb?v=1"></a-asset-item>
-                <a-asset-item id="model5" src="./models/model5_Lotok_gluhoy150.glb?v=1"></a-asset-item>
-                <a-asset-item id="model6" src="./models/model6_Lotok_perf50.glb?v=1"></a-asset-item>
-                <a-asset-item id="model7" src="./models/model7_Lotok_perf65.glb?v=1"></a-asset-item>
-                <a-asset-item id="model8" src="./models/model8_Lotok_perf80.glb?v=1"></a-asset-item>
-                <a-asset-item id="model9" src="./models/model9_Lotok_perf100.glb?v=1"></a-asset-item>
-                <a-asset-item id="model10" src="./models/model10_Lotok_perf150.glb?v=1"></a-asset-item>
-                <a-asset-item id="model11" src="./models/model11_lestni_50.glb?v=1"></a-asset-item>
-                <a-asset-item id="model12" src="./models/model12_lestni_65.glb?v=1"></a-asset-item>
-                <a-asset-item id="model13" src="./models/model13_lestni_80.glb?v=1"></a-asset-item>
-                <a-asset-item id="model14" src="./models/model14_lestni_100.glb?v=1"></a-asset-item>
-                <a-asset-item id="model15" src="./models/model15_lestni_150.glb?v=1"></a-asset-item>
-                 <a-asset-item id="model16" src="./models/ani.glb?v=2"></a-asset-item>
-                 <a-asset-item id="model17" src="./models/strut21.glb?v=1"></a-asset-item>
-                 <a-asset-item id="model18" src="./models/strut41.glb?v=1"></a-asset-item>
-                 <a-asset-item id="model19" src="./models/strut82.glb?v=1"></a-asset-item>
-                 <a-asset-item id="model20" src="./models/lotok_dno3.glb?v=2"></a-asset-item>
-                <a-asset-item id="model21" src="./models/merged.glb?v=2"></a-asset-item>
             </a-assets>
 
             <!-- Lighting Setup -->
@@ -132,102 +108,10 @@ text-align: center;
 
             <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-            <!-- Models (removed smooth-rotation) -->
+            <!-- Models -->
             <a-entity mindar-image-target="targetIndex: 0">
                 <a-gltf-model src="#model1" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
             </a-entity>
-
-            <a-entity mindar-image-target="targetIndex: 1">
-                <a-gltf-model src="#model2" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
-            </a-entity>
-
-            <a-entity mindar-image-target="targetIndex: 2">
-                <a-gltf-model src="#model3" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
-            </a-entity>
-
-            <a-entity mindar-image-target="targetIndex: 3">
-                <a-gltf-model src="#model4" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
-            </a-entity>
-
-            <a-entity mindar-image-target="targetIndex: 4">
-                <a-gltf-model src="#model5" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
-            </a-entity>
-
-            <a-entity mindar-image-target="targetIndex: 5">
-                <a-gltf-model src="#model6" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
-            </a-entity>
-
-            <a-entity mindar-image-target="targetIndex: 6">
-                <a-gltf-model src="#model7" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
-            </a-entity>
-
-            <a-entity mindar-image-target="targetIndex: 7">
-                <a-gltf-model src="#model8" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
-            </a-entity>
-
-            <a-entity mindar-image-target="targetIndex: 8">
-                <a-gltf-model src="#model9" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
-            </a-entity>
-
-            <a-entity mindar-image-target="targetIndex: 9">
-                <a-gltf-model src="#model10" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
-            </a-entity>
-            
-            <a-entity mindar-image-target="targetIndex: 10">
-                <a-gltf-model src="#model11" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
-            </a-entity>
-
-            <a-entity mindar-image-target="targetIndex: 11">
-                <a-gltf-model src="#model12" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
-            </a-entity>
-
-            <a-entity mindar-image-target="targetIndex: 12">
-                <a-gltf-model src="#model13" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
-            </a-entity>
-
-            <a-entity mindar-image-target="targetIndex: 13 ">
-                <a-gltf-model src="#model14" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
-            </a-entity>
-
-            <a-entity mindar-image-target="targetIndex: 14">
-                <a-gltf-model src="#model15" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
-            </a-entity>
-           <a-entity mindar-image-target="targetIndex: 15">
-    <a-gltf-model 
-        src="#model16" 
-        position="0 0 0" 
-        scale="1.0 1.0 1.0" 
-        rotation="180 0 0"
-       animation-mixer="clip: CombinedAction; loop: repeat; clampWhenFinished: true; timeScale: 1">
-    </a-gltf-model>
-</a-entity>
-            <a-entity mindar-image-target="targetIndex: 16">
-                <a-gltf-model src="#model17" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
-            </a-entity>
-            <a-entity mindar-image-target="targetIndex: 17">
-                <a-gltf-model src="#model18" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
-            </a-entity>
-            <a-entity mindar-image-target="targetIndex: 18">
-                <a-gltf-model src="#model19" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
-            </a-entity>
-            <a-entity mindar-image-target="targetIndex: 19">
-    <a-gltf-model 
-        src="#model20" 
-        position="0 0 0" 
-        scale="1.0 1.0 1.0" 
-        rotation="0 0 0"
-         animation-mixer="loop: repeat">
-    </a-gltf-model>
-</a-entity>
-             <a-entity mindar-image-target="targetIndex: 20">
-    <a-gltf-model 
-        src="#model21" 
-        position="0 0 0" 
-        scale="1.0 1.0 1.0" 
-        rotation="0 0 0"
-         animation-mixer="clip: ani; loop: repeat">
-    </a-gltf-model>
-</a-entity>
         </a-scene>
     </div>
     
@@ -235,224 +119,292 @@ text-align: center;
     <div class="loading" id="loading">Загрузка AR...</div>
     <div class="marker-info" id="markerInfo"></div>
 
-    
-    
     <script>
-       
+        // Global variables
+        let currentModel = null;
+        let isModelDetached = false;
+        const ROTATION_AMOUNT = 15; // degrees per click
 
-    let currentModel = null;
-    const ROTATION_AMOUNT = 15; // degrees per click
-// Регистрируем компонент для автозапуска анимации
-AFRAME.registerComponent('auto-play-animation', {
-    init: function() {
-        this.el.addEventListener('model-loaded', () => {
-            console.log('Model loaded, starting animation');
-            const mixer = this.el.components['animation-mixer'];
-            if (mixer) {
-                console.log('Animation mixer found');
-            } else {
-                console.log('Animation mixer NOT found');
+        // Auto-play animation component
+        AFRAME.registerComponent('auto-play-animation', {
+            init: function() {
+                this.el.addEventListener('model-loaded', () => {
+                    console.log('Model loaded, starting animation');
+                    const mixer = this.el.components['animation-mixer'];
+                    if (mixer) {
+                        console.log('Animation mixer found');
+                    } else {
+                        console.log('Animation mixer NOT found');
+                    }
+                });
             }
         });
-    }
-});
-    document.addEventListener('DOMContentLoaded', function() {
-        const status = document.getElementById('status');
-        const loading = document.getElementById('loading');
-        const sceneEl = document.querySelector('a-scene');
-        
 
-    
+        // Detachment functionality
+        function detachModelFromMarker(marker) {
+            const model = marker.querySelector('a-gltf-model');
+            if (!model) return null;
 
-        // First request camera permission only
-        async function initAR() {
-            try {
-                loading.style.display = 'block';
-                status.textContent = 'Requesting camera access...';
-                
-                // Request camera access first
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                
-                // Stop the camera stream (MindAR will restart it)
-                stream.getTracks().forEach(track => track.stop());
-                
-                // Now start AR
-                startAR();
-            } catch (error) {
-                console.error('Camera permission error:', error);
-                status.textContent = 'Please allow camera access for AR';
-                loading.style.display = 'none';
-            }
+            // Get world position and rotation
+            const worldPos = new THREE.Vector3();
+            const worldRot = new THREE.Quaternion();
+            model.object3D.getWorldPosition(worldPos);
+            model.object3D.getWorldQuaternion(worldRot);
+
+            // Create a new entity for the detached model
+            const detachedModel = document.createElement('a-entity');
+            detachedModel.setAttribute('gltf-model', model.getAttribute('gltf-model'));
+            detachedModel.setAttribute('scale', model.getAttribute('scale'));
+            detachedModel.setAttribute('rotation', model.getAttribute('rotation'));
+            detachedModel.setAttribute('position', {
+                x: worldPos.x,
+                y: worldPos.y, 
+                z: worldPos.z
+            });
+            
+            // Copy the rotation
+            const rotation = model.getAttribute('rotation');
+            detachedModel.setAttribute('rotation', rotation);
+
+            // Add to scene
+            document.querySelector('a-scene').appendChild(detachedModel);
+
+            // Remove original model from marker
+            marker.removeChild(model);
+
+            return detachedModel;
         }
-        
-        function startAR() {
-            status.textContent = 'Loading AR...';
+
+        // Function to setup gestures for detached model
+        function setupGestureControlsForDetachedModel(detachedModel) {
+            const arContainer = document.getElementById('ar-container');
+            const hammerManager = new Hammer.Manager(arContainer);
+
+            // Remove existing hammer managers if any
+            hammerManager.destroy();
+
+            // Create new gestures
+            const Pan = new Hammer.Pan({ threshold: 0, pointers: 1 });
+            const Pinch = new Hammer.Pinch({ threshold: 0 });
             
-            // Get the AR system
-            const arSystem = sceneEl.systems["mindar-image-system"];
-            
-            // Event handlers
-            sceneEl.addEventListener('arReady', function() {
-                status.textContent = 'Наведите камеру на маркер';
-                loading.style.display = 'none';
+            hammerManager.add(Pan);
+            hammerManager.add(Pinch);
+
+            let lastPanPosition = { x: 0, y: 0 };
+            let lastScale = 1;
+
+            // Pan for rotation
+            hammerManager.on('panstart panmove', function(event) {
+                if (!detachedModel) return;
+
+                const rotation = detachedModel.getAttribute('rotation');
+
+                if (event.type === 'panstart') {
+                    lastPanPosition.x = event.center.x;
+                    lastPanPosition.y = event.center.y;
+                } else if (event.type === 'panmove') {
+                    const deltaX = event.center.x - lastPanPosition.x;
+                    const deltaY = event.center.y - lastPanPosition.y;
+
+                    rotation.y += deltaX * 0.5;
+                    rotation.x += deltaY * 0.5;
+
+                    detachedModel.setAttribute('rotation', rotation);
+
+                    lastPanPosition.x = event.center.x;
+                    lastPanPosition.y = event.center.y;
+                }
             });
-            
-            sceneEl.addEventListener('arError', function(evt) {
-                console.error('AR Error:', evt.detail);
-                status.textContent = 'Обновите страницу или отсканируйте Qr-код заново';
-                loading.style.display = 'none';
+
+            // Pinch for scale
+            hammerManager.on('pinchstart pinchmove', function(event) {
+                if (!detachedModel) return;
+
+                let scale = detachedModel.getAttribute('scale');
+
+                if (event.type === 'pinchstart') {
+                    lastScale = event.scale;
+                } else if (event.type === 'pinchmove') {
+                    const scaleFactor = event.scale / lastScale;
+
+                    scale.x *= scaleFactor;
+                    scale.y *= scaleFactor;
+                    scale.z *= scaleFactor;
+
+                    // Optional: Add scale limits
+                    scale.x = Math.max(0.1, Math.min(5, scale.x));
+                    scale.y = Math.max(0.1, Math.min(5, scale.y));
+                    scale.z = Math.max(0.1, Math.min(5, scale.z));
+
+                    detachedModel.setAttribute('scale', scale);
+                    lastScale = event.scale;
+                }
             });
+        }
+
+        // Main initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            const status = document.getElementById('status');
+            const loading = document.getElementById('loading');
+            const sceneEl = document.querySelector('a-scene');
+
+            // First request camera permission only
+            async function initAR() {
+                try {
+                    loading.style.display = 'block';
+                    status.textContent = 'Requesting camera access...';
+                    
+                    // Request camera access first
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    
+                    // Stop the camera stream (MindAR will restart it)
+                    stream.getTracks().forEach(track => track.stop());
+                    
+                    // Now start AR
+                    startAR();
+                } catch (error) {
+                    console.error('Camera permission error:', error);
+                    status.textContent = 'Please allow camera access for AR';
+                    loading.style.display = 'none';
+                }
+            }
             
-            // Start AR system
-            arSystem.start();
-            
-            // Handle marker detection
-            const markers = document.querySelectorAll('[mindar-image-target]');
-            
-            markers.forEach((marker, index) => {
-                marker.addEventListener('targetFound', function() {
-                    status.textContent = 'Маркер ' + index + ' обнаружен';
-                    // Set the current model to the one that was just found
-                    currentModel = marker.querySelector('a-gltf-model');
+            function startAR() {
+                status.textContent = 'Loading AR...';
+                
+                // Get the AR system
+                const arSystem = sceneEl.systems["mindar-image-system"];
+                
+                // Event handlers
+                sceneEl.addEventListener('arReady', function() {
+                    status.textContent = 'Наведите камеру на маркер';
+                    loading.style.display = 'none';
                 });
                 
-                marker.addEventListener('targetLost', function() {
-                    status.textContent = 'Point camera at marker';
-                    // Don't clear currentModel immediately, keep the last detected model
+                sceneEl.addEventListener('arError', function(evt) {
+                    console.error('AR Error:', evt.detail);
+                    status.textContent = 'Обновите страницу или отсканируйте Qr-код заново';
+                    loading.style.display = 'none';
                 });
-            });
-        }
-        
-        // Start the initialization process
-        setTimeout(initAR, 500);
-        
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            if (sceneEl.renderer) {
-                sceneEl.renderer.setSize(window.innerWidth, window.innerHeight);
+                
+                // Start AR system
+                arSystem.start();
+                
+                // Handle marker detection
+                const markers = document.querySelectorAll('[mindar-image-target]');
+                
+                markers.forEach((marker, index) => {
+                    marker.addEventListener('targetFound', function() {
+                        status.textContent = 'Маркер ' + index + ' обнаружен';
+                        
+                        if (!isModelDetached) {
+                            // Small delay to ensure model is properly positioned
+                            setTimeout(() => {
+                                const detachedModel = detachModelFromMarker(marker);
+                                if (detachedModel) {
+                                    currentModel = detachedModel;
+                                    isModelDetached = true;
+                                    status.textContent = 'Модель зафиксирована на экране';
+                                    
+                                    // Update gesture controls to use the detached model
+                                    setupGestureControlsForDetachedModel(detachedModel);
+                                }
+                            }, 100);
+                        }
+                    });
+                    
+                    marker.addEventListener('targetLost', function() {
+                        if (!isModelDetached) {
+                            status.textContent = 'Point camera at marker';
+                        }
+                    });
+                });
             }
+
+            // Start the initialization process
+            setTimeout(initAR, 500);
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (sceneEl.renderer) {
+                    sceneEl.renderer.setSize(window.innerWidth, window.innerHeight);
+                }
+            });
         });
-    });
-        // Wait for the AR scene to load
-document.querySelector('a-scene').addEventListener('loaded', function() {
-    const arContainer = document.getElementById('ar-container');
-    let currentModel = null; // This will reference the currently detected model
 
-    // Initialize Hammer.js on the AR container
-    const hammerManager = new Hammer.Manager(arContainer);
+        // Initial gesture controls (for before detachment)
+        document.querySelector('a-scene').addEventListener('loaded', function() {
+            const arContainer = document.getElementById('ar-container');
+            
+            // Initialize Hammer.js on the AR container
+            const hammerManager = new Hammer.Manager(arContainer);
 
-    // Create and configure the pan gesture for rotation
-    const Pan = new Hammer.Pan({ threshold: 0, pointers: 1 });
-    hammerManager.add(Pan);
+            // Create and configure the pan gesture for rotation
+            const Pan = new Hammer.Pan({ threshold: 0, pointers: 1 });
+            hammerManager.add(Pan);
 
-    // Create and configure the pinch gesture for scaling
-    const Pinch = new Hammer.Pinch({ threshold: 0 });
-    hammerManager.add(Pinch);
+            // Create and configure the pinch gesture for scaling
+            const Pinch = new Hammer.Pinch({ threshold: 0 });
+            hammerManager.add(Pinch);
 
-    // Listen for marker detection to set the current model
-    const markers = document.querySelectorAll('[mindar-image-target]');
-    markers.forEach((marker) => {
-        marker.addEventListener('targetFound', event => {
-            currentModel = event.target.querySelector('a-gltf-model');
+            // Variables to track the last state
+            let lastPanPosition = { x: 0, y: 0 };
+            let lastScale = 1;
+
+            // Handle the pan gesture to rotate the model
+            hammerManager.on('panstart panmove', function(event) {
+                if (!currentModel) return;
+
+                // Get the current rotation
+                const rotation = currentModel.getAttribute('rotation');
+
+                if (event.type === 'panstart') {
+                    lastPanPosition.x = event.center.x;
+                    lastPanPosition.y = event.center.y;
+                } else if (event.type === 'panmove') {
+                    // Calculate the change in position
+                    const deltaX = event.center.x - lastPanPosition.x;
+                    const deltaY = event.center.y - lastPanPosition.y;
+
+                    // Update the rotation (adjust the divisor to change sensitivity)
+                    rotation.y += deltaX * 0.5;
+                    rotation.x += deltaY * 0.5;
+
+                    // Apply the new rotation
+                    currentModel.setAttribute('rotation', rotation);
+
+                    // Update the last position
+                    lastPanPosition.x = event.center.x;
+                    lastPanPosition.y = event.center.y;
+                }
+            });
+
+            // Handle the pinch gesture to scale the model
+            hammerManager.on('pinchstart pinchmove', function(event) {
+                if (!currentModel) return;
+
+                // Get the current scale
+                let scale = currentModel.getAttribute('scale');
+
+                if (event.type === 'pinchstart') {
+                    lastScale = event.scale;
+                } else if (event.type === 'pinchmove') {
+                    // Calculate the scale factor
+                    const scaleFactor = event.scale / lastScale;
+
+                    // Update the scale uniformly
+                    scale.x *= scaleFactor;
+                    scale.y *= scaleFactor;
+                    scale.z *= scaleFactor;
+
+                    // Apply the new scale
+                    currentModel.setAttribute('scale', scale);
+
+                    // Update the last scale
+                    lastScale = event.scale;
+                }
+            });
         });
-        marker.addEventListener('targetLost', event => {
-            // Optional: Keep the last model as current, or set to null
-            // currentModel = null;
-        });
-    });
-
-    // Variables to track the last state
-    let lastPanPosition = { x: 0, y: 0 };
-    let lastScale = 1;
-
-    // Handle the pan gesture to rotate the model
-    hammerManager.on('panstart panmove', function(event) {
-        if (!currentModel) return;
-
-        // Get the current rotation
-        const rotation = currentModel.getAttribute('rotation');
-
-        if (event.type === 'panstart') {
-            lastPanPosition.x = event.center.x;
-            lastPanPosition.y = event.center.y;
-        } else if (event.type === 'panmove') {
-            // Calculate the change in position
-            const deltaX = event.center.x - lastPanPosition.x;
-            const deltaY = event.center.y - lastPanPosition.y;
-
-            // Update the rotation (adjust the divisor to change sensitivity)
-            rotation.y += deltaX * 0.5;
-            rotation.x += deltaY * 0.5;
-
-            // Apply the new rotation
-            currentModel.setAttribute('rotation', rotation);
-
-            // Update the last position
-            lastPanPosition.x = event.center.x;
-            lastPanPosition.y = event.center.y;
-        }
-    });
-
-    // Handle the pinch gesture to scale the model
-    hammerManager.on('pinchstart pinchmove', function(event) {
-        if (!currentModel) return;
-
-        // Get the current scale
-        let scale = currentModel.getAttribute('scale');
-
-        if (event.type === 'pinchstart') {
-            lastScale = event.scale;
-        } else if (event.type === 'pinchmove') {
-            // Calculate the scale factor
-            const scaleFactor = event.scale / lastScale;
-
-            // Update the scale uniformly
-            scale.x *= scaleFactor;
-            scale.y *= scaleFactor;
-            scale.z *= scaleFactor;
-
-            // Apply the new scale
-            currentModel.setAttribute('scale', scale);
-
-            // Update the last scale
-            lastScale = event.scale;
-        }
-    });
-});
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
