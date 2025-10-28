@@ -84,45 +84,43 @@
 
             // FIXED: Completely remove original model from marker
             function detachModel() {
-                const marker = document.querySelector('[mindar-image-target]');
-                const originalModel = marker.querySelector('a-gltf-model');
+  const marker = document.querySelector('[mindar-image-target]');
+  const originalModel = marker.querySelector('a-gltf-model');
 
-                if (!originalModel) return null;
+  if (!originalModel) return null;
 
-                const persistentContainer = document.getElementById('persistent-model-container');
+  const persistentContainer = document.getElementById('persistent-model-container');
 
-                // Create new model
-                const newModel = document.createElement('a-entity');
-                newModel.setAttribute('gltf-model', '#model1');
-                newModel.setAttribute('scale', '1 1 1');
-                newModel.setAttribute('rotation', '0 0 0');
+  // создаём новый entity и копируем модель
+  const newModel = document.createElement('a-entity');
+  newModel.setAttribute('gltf-model', '#model1');
+  newModel.setAttribute('scale', '1 1 1');
+  newModel.setAttribute('rotation', '0 0 0');
 
-                // Get camera position and place model in front of it
-                const camera = document.querySelector('a-camera');
-                const cameraWorldPos = new THREE.Vector3();
-                camera.object3D.getWorldPosition(cameraWorldPos);
-                
-                // Calculate position 1 meter in front of camera
-                const cameraDirection = new THREE.Vector3();
-                camera.object3D.getWorldDirection(cameraDirection);
-                const modelPosition = new THREE.Vector3()
-                    .copy(cameraWorldPos)
-                    .add(cameraDirection.multiplyScalar(-1)); // -1 meter in front
+  // позиция перед камерой
+  const camera = document.querySelector('a-camera');
+  const cameraWorldPos = new THREE.Vector3();
+  const cameraDirection = new THREE.Vector3();
 
-                newModel.setAttribute('position', modelPosition);
+  camera.object3D.getWorldPosition(cameraWorldPos);
+  camera.object3D.getWorldDirection(cameraDirection);
 
-                // Add to persistent container
-                persistentContainer.appendChild(newModel);
+  const modelPosition = cameraWorldPos.clone().add(cameraDirection.multiplyScalar(-1));
 
-                // CRITICAL FIX: COMPLETELY REMOVE original model from marker
-                if (originalModel.parentNode) {
-                    originalModel.parentNode.removeChild(originalModel);
-                    console.log("Original model completely removed from marker");
-                }
+  // ВАЖНО: напрямую в object3D.position
+  newModel.object3D.position.copy(modelPosition);
 
-                console.log("✅ Model detached and independent from marker");
-                return newModel;
-            }
+  // добавляем сразу в <a-scene>, не внутрь marker
+  document.querySelector('a-scene').appendChild(newModel);
+
+  // полностью удалить оригинал
+  if (originalModel && originalModel.parentNode) {
+    originalModel.parentNode.removeChild(originalModel);
+  }
+
+  console.log("✅ Detached model position:", newModel.object3D.position);
+  return newModel;
+}
 
             // Start AR
             async function startAR() {
@@ -178,3 +176,4 @@
     </script>
 </body>
 </html>
+
