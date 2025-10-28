@@ -68,6 +68,7 @@
                     if (!currentModel) return;
                     const rotation = currentModel.getAttribute('rotation');
                     rotation.y += e.deltaX * 0.5;
+                    rotation.x += e.deltaY * 0.5;
                     currentModel.setAttribute('rotation', rotation);
                 });
 
@@ -77,49 +78,41 @@
                     const newScale = Math.max(0.1, Math.min(3, e.scale));
                     currentModel.setAttribute('scale', {x: newScale, y: newScale, z: newScale});
                 });
+
+                console.log("Gesture controls initialized");
             }
 
-            // Simple detachment function
+            // SIMPLE FIX: Place model in front of camera
             function detachModel() {
-    const marker = document.querySelector('[mindar-image-target]');
-    const originalModel = marker.querySelector('a-gltf-model');
+                const marker = document.querySelector('[mindar-image-target]');
+                const originalModel = marker.querySelector('a-gltf-model');
+                
+                if (!originalModel) return null;
 
-    if (!originalModel) return null;
+                const persistentContainer = document.getElementById('persistent-model-container');
+                
+                // Create new model
+                const newModel = document.createElement('a-entity');
+                newModel.setAttribute('gltf-model', '#model1');
+                newModel.setAttribute('scale', '1 1 1');
+                newModel.setAttribute('rotation', '0 0 0'); // Reset rotation
+                
+                // Place model 1 meter in front of camera
+                newModel.setAttribute('position', '0 0 -1');
+                
+                // Make it a child of the camera so it stays in view
+                const camera = document.querySelector('a-camera');
+                camera.appendChild(newModel);
 
-    const persistentContainer = document.getElementById('persistent-model-container');
+                // Completely remove the original model
+                if (originalModel.parentNode) {
+                    originalModel.parentNode.removeChild(originalModel);
+                }
 
-    // создаём новый объект
-    const newModel = document.createElement('a-entity');
-    newModel.setAttribute('gltf-model', '#model1');
-    newModel.setAttribute('scale', '1 1 1');
-    newModel.setAttribute('rotation', '180 0 0');
+                console.log("Model detached and placed in front of camera");
+                return newModel;
+            }
 
-    // ждём пока оригинал реально загрузится в three.js
-    originalModel.object3D.updateMatrixWorld(true);
-
-    // копируем позицию, вращение и масштаб напрямую из object3D
-    const pos = new THREE.Vector3();
-    const rot = new THREE.Euler();
-    const scale = new THREE.Vector3();
-
-    originalModel.object3D.getWorldPosition(pos);
-    originalModel.object3D.getWorldScale(scale);
-    originalModel.object3D.getWorldQuaternion(rot);
-
-    // присваиваем напрямую в three.js объект нового энтити
-    newModel.addEventListener('model-loaded', () => {
-        newModel.object3D.position.copy(pos);
-        newModel.object3D.quaternion.copy(rot);
-        newModel.object3D.scale.copy(scale);
-    });
-
-    persistentContainer.appendChild(newModel);
-
-    // просто скрываем оригинал (чтобы не мигал)
-    originalModel.setAttribute('visible', 'false');
-
-    return newModel;
-}
             // Start AR
             async function startAR() {
                 try {
@@ -139,17 +132,21 @@
                         if (!modelDetached) {
                             status.textContent = 'Marker detected - detaching model';
                             
-                            setTimeout(() => {
-                                currentModel = detachModel();
-                                if (currentModel) {
-                                    modelDetached = true;
-                                    status.textContent = 'Model detached - use gestures to rotate/scale';
-                                    initGestures();
-                                }
-                            }, 100);
+                            // No delay needed - just detach immediately
+                            currentModel = detachModel();
+                            if (currentModel) {
+                                modelDetached = true;
+                                status.textContent = 'Model detached - use gestures to rotate/scale';
+                                initGestures();
+                            }
                         } else {
                             status.textContent = 'Model already detached';
                         }
+                    });
+
+                    marker.addEventListener('targetLost', () => {
+                        // Do nothing - model should stay visible
+                        console.log("Marker lost but model stays");
                     });
 
                     arSystem.start();
@@ -168,4 +165,3 @@
     </script>
 </body>
 </html>
-
