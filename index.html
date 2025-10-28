@@ -6,353 +6,149 @@
     <title>WebAR with Rotation Controls</title>
     <script src="./aframe.min.js"></script>
     <script src="./mindar-image-aframe.prod.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
     <script src="./hammer.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            background: #000;
-            overflow: hidden;
-            width: 100vw;
-            height: 100vh;
-        }
-        
-        #ar-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            touch-action: none;
-        }
-        
-        .status {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #fff;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 5px 5px;
-            border-radius: 20px;
-            font-family: Arial, sans-serif;
-            font-size: 14px;
-            z-index: 100;
-            pointer-events: none;
-            max-width: 80%;
-            text-align: center;
-        }
-        
-        .loading {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            z-index: 15;
-            text-align: center;
-            font-family: Arial, sans-serif;
-            font-size: 16px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 20px;
-            border-radius: 10px;
-        }
-        
-        .marker-info {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #fff;
-            background: rgba(0, 0, 0, 0.0);
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 12px;
-            z-index: 100;
-            text-align: center;
-            max-width: 80%;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #000; overflow: hidden; width: 100vw; height: 100vh; }
+        #ar-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
+        .status { 
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%); 
+            color: #fff; background: rgba(0, 0, 0, 0.3); padding: 10px 20px; 
+            border-radius: 20px; font-family: Arial; z-index: 1000; 
         }
     </style>
 </head>
 <body>
     <div id="ar-container">
         <a-scene 
-            id="scene" 
             mindar-image="imageTargetSrc: ./targets21.mind; 
-                         uiLoading: no; 
-                         uiScanning: no; 
-                         uiError: no; 
-                         autoStart: false;
-            filterMinCF: 0.0005;
-                 filterBeta: 0.05;
-                 maxTrackFPS: 30;"
-            color-space="sRGB" 
-            renderer="colorManagement: true; physicallyCorrectLights: true"
-            vr-mode-ui="enabled: false"
-            device-orientation-permission-ui="enabled: false"
+                         uiLoading: no; uiScanning: no; uiError: no; 
+                         autoStart: false;"
             embedded>
              
             <a-assets>
                 <a-asset-item id="model1" src="./models/model1_Lotok_gluhoy50.glb?v=1"></a-asset-item>
             </a-assets>
 
-            <!-- Lighting Setup -->
             <a-light type="ambient" color="#FFF" intensity="2.5"></a-light>
             <a-light type="directional" color="#FFF" intensity="2" position="2 5 3"></a-light>
-            <a-light type="directional" color="#fff" intensity="1" position="-3 2 -2"></a-light>
-            <a-light type="directional" color="#fff" intensity="1" position="0 3 -4"></a-light>
 
             <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-            <!-- Models -->
-            <a-entity mindar-image-target="targetIndex: 0" id="marker-0">
-                <a-gltf-model src="#model1" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0" id="original-model"></a-gltf-model>
+            <!-- This is the model that gets detected and will be replaced -->
+            <a-entity mindar-image-target="targetIndex: 0">
+                <a-gltf-model src="#model1" position="0 0 0" scale="1 1 1" rotation="180 0 0"></a-gltf-model>
             </a-entity>
+
+            <!-- This is where our persistent model will be placed -->
+            <a-entity id="persistent-model-container"></a-entity>
         </a-scene>
     </div>
     
-    <div class="status" id="status">Наведите камеру на маркер</div>
-    <div class="loading" id="loading">Загрузка AR...</div>
-    <div class="marker-info" id="markerInfo"></div>
+    <div class="status" id="status">Point camera at marker</div>
 
     <script>
-        // Global variables
         let currentModel = null;
-        let isModelDetached = false;
-        let hammerManager = null;
+        let modelDetached = false;
+        let hammer = null;
 
-        // Auto-play animation component
-        AFRAME.registerComponent('auto-play-animation', {
-            init: function() {
-                this.el.addEventListener('model-loaded', () => {
-                    console.log('Model loaded, starting animation');
-                    const mixer = this.el.components['animation-mixer'];
-                    if (mixer) {
-                        console.log('Animation mixer found');
-                    } else {
-                        console.log('Animation mixer NOT found');
-                    }
-                });
-            }
-        });
-
-        // SIMPLE detachment that actually works
-        function detachModelFromMarker() {
-            console.log("Starting detachment process");
-            
-            // Get the original model
-            const originalModel = document.getElementById('original-model');
-            if (!originalModel) {
-                console.error("Original model not found!");
-                return null;
-            }
-
-            // Get the marker to get its world position
-            const marker = document.getElementById('marker-0');
-            const markerWorldPos = new THREE.Vector3();
-            marker.object3D.getWorldPosition(markerWorldPos);
-            
-            console.log("Marker world position:", markerWorldPos);
-
-            // Create a completely new entity
-            const detachedModel = document.createElement('a-entity');
-            detachedModel.setAttribute('gltf-model', '#model1');
-            detachedModel.setAttribute('scale', '1 1 1');
-            detachedModel.setAttribute('rotation', '180 0 0');
-            detachedModel.setAttribute('position', {
-                x: markerWorldPos.x,
-                y: markerWorldPos.y, 
-                z: markerWorldPos.z
-            });
-            detachedModel.id = 'detached-model';
-
-            // Add to scene
-            const scene = document.querySelector('a-scene');
-            scene.appendChild(detachedModel);
-            
-            console.log("Detached model created and added to scene");
-
-            // COMPLETELY remove the original model from the marker
-            if (originalModel.parentNode) {
-                originalModel.parentNode.removeChild(originalModel);
-                console.log("Original model removed from marker");
-            }
-
-            return detachedModel;
-        }
-
-        // Setup gesture controls - SIMPLIFIED
-        function setupGestureControls() {
-            console.log("Setting up gesture controls");
-            
-            const arContainer = document.getElementById('ar-container');
-            
-            // Clean up existing hammer manager
-            if (hammerManager) {
-                hammerManager.destroy();
-            }
-
-            // Create new hammer manager
-            hammerManager = new Hammer.Manager(arContainer);
-            
-            // Enable both pan and pinch
-            const pan = new Hammer.Pan();
-            const pinch = new Hammer.Pinch();
-            
-            hammerManager.add(pan);
-            hammerManager.add(pinch);
-
-            // Pan for rotation
-            hammerManager.on('panstart panmove', function(event) {
-                if (!currentModel) {
-                    console.log("No current model for gestures");
-                    return;
-                }
-
-                if (event.type === 'panstart') {
-                    console.log("Pan started");
-                }
-
-                const rotation = currentModel.getAttribute('rotation');
-                rotation.y += event.deltaX * 0.5;
-                rotation.x += event.deltaY * 0.5;
-                currentModel.setAttribute('rotation', rotation);
-            });
-
-            // Pinch for scale
-            hammerManager.on('pinchstart pinchmove', function(event) {
-                if (!currentModel) return;
-
-                if (event.type === 'pinchstart') {
-                    console.log("Pinch started");
-                }
-
-                let scale = currentModel.getAttribute('scale');
-                const scaleFactor = event.scale;
-                
-                scale.x = scaleFactor;
-                scale.y = scaleFactor; 
-                scale.z = scaleFactor;
-                
-                // Limit scale
-                scale.x = Math.max(0.1, Math.min(3, scale.x));
-                scale.y = Math.max(0.1, Math.min(3, scale.y));
-                scale.z = Math.max(0.1, Math.min(3, scale.z));
-                
-                currentModel.setAttribute('scale', scale);
-            });
-
-            console.log("Gesture controls setup complete");
-        }
-
-        // Main initialization
         document.addEventListener('DOMContentLoaded', function() {
             const status = document.getElementById('status');
-            const loading = document.getElementById('loading');
-            const sceneEl = document.querySelector('a-scene');
-
-            // Setup gesture controls when scene is ready
-            sceneEl.addEventListener('loaded', function() {
-                console.log("Scene loaded");
-                setupGestureControls();
-            });
-
-            // Camera permission and AR start
-            async function initAR() {
-                try {
-                    loading.style.display = 'block';
-                    status.textContent = 'Requesting camera access...';
-                    
-                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                    stream.getTracks().forEach(track => track.stop());
-                    startAR();
-                } catch (error) {
-                    console.error('Camera permission error:', error);
-                    status.textContent = 'Please allow camera access for AR';
-                    loading.style.display = 'none';
-                }
-            }
+            const scene = document.querySelector('a-scene');
             
-            function startAR() {
-                status.textContent = 'Loading AR...';
-                const arSystem = sceneEl.systems["mindar-image-system"];
+            // Initialize gesture controls
+            function initGestures() {
+                const container = document.getElementById('ar-container');
+                hammer = new Hammer(container);
                 
-                sceneEl.addEventListener('arReady', function() {
-                    status.textContent = 'Наведите камеру на маркер';
-                    loading.style.display = 'none';
-                    console.log("AR Ready");
+                hammer.get('pan').set({ direction: Hammer.DIRECTION_ALL });
+                hammer.get('pinch').set({ enable: true });
+
+                hammer.on('pan', function(e) {
+                    if (!currentModel) return;
+                    const rotation = currentModel.getAttribute('rotation');
+                    rotation.y += e.deltaX * 0.5;
+                    currentModel.setAttribute('rotation', rotation);
                 });
-                
-                sceneEl.addEventListener('arError', function(evt) {
-                    console.error('AR Error:', evt.detail);
-                    status.textContent = 'Обновите страницу или отсканируйте Qr-код заново';
-                    loading.style.display = 'none';
-                });
-                
-                arSystem.start();
-                console.log("AR Started");
-                
-                // Handle marker detection
-                const marker = document.getElementById('marker-0');
-                
-                marker.addEventListener('targetFound', function() {
-                    console.log("Marker found!");
-                    status.textContent = 'Маркер обнаружен';
-                    
-                    if (!isModelDetached) {
-                        console.log("First detection - detaching model");
-                        
-                        // Wait a bit for model to be positioned by MindAR
-                        setTimeout(() => {
-                            const detachedModel = detachModelFromMarker();
-                            if (detachedModel) {
-                                currentModel = detachedModel;
-                                isModelDetached = true;
-                                status.textContent = 'Модель зафиксирована на экране';
-                                console.log("Model detached successfully");
-                                
-                                // Force the detached model to stay in place
-                                const pos = currentModel.getAttribute('position');
-                                console.log("Detached model position:", pos);
-                            }
-                        }, 300);
-                    } else {
-                        console.log("Model already detached");
-                        status.textContent = 'Модель уже зафиксирована';
-                    }
-                });
-                
-                marker.addEventListener('targetLost', function() {
-                    console.log("Marker lost");
-                    if (!isModelDetached) {
-                        status.textContent = 'Point camera at marker';
-                    } else {
-                        console.log("Model is detached and should stay visible");
-                        // Model should stay visible - do nothing
-                    }
+
+                hammer.on('pinch', function(e) {
+                    if (!currentModel) return;
+                    let scale = currentModel.getAttribute('scale');
+                    const newScale = Math.max(0.1, Math.min(3, e.scale));
+                    currentModel.setAttribute('scale', {x: newScale, y: newScale, z: newScale});
                 });
             }
 
-            // Debug: Check if model exists
-            setInterval(() => {
-                const detachedModel = document.getElementById('detached-model');
-                if (detachedModel) {
-                    console.log("Detached model exists in DOM");
-                }
-            }, 2000);
+            // Simple detachment function
+            function detachModel() {
+                const marker = document.querySelector('[mindar-image-target]');
+                const originalModel = marker.querySelector('a-gltf-model');
+                
+                if (!originalModel) return null;
+
+                // Get the current world position
+                const worldPos = new THREE.Vector3();
+                originalModel.object3D.getWorldPosition(worldPos);
+
+                // Create new model in persistent container
+                const persistentContainer = document.getElementById('persistent-model-container');
+                const newModel = document.createElement('a-entity');
+                newModel.setAttribute('gltf-model', '#model1');
+                newModel.setAttribute('scale', '1 1 1');
+                newModel.setAttribute('rotation', '180 0 0');
+                newModel.setAttribute('position', worldPos);
+                
+                persistentContainer.appendChild(newModel);
+
+                // Remove the original model from marker
+                marker.removeChild(originalModel);
+
+                return newModel;
+            }
 
             // Start AR
-            setTimeout(initAR, 500);
-            
-            window.addEventListener('resize', function() {
-                if (sceneEl.renderer) {
-                    sceneEl.renderer.setSize(window.innerWidth, window.innerHeight);
+            async function startAR() {
+                try {
+                    status.textContent = 'Starting camera...';
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    stream.getTracks().forEach(track => track.stop());
+                    
+                    const arSystem = scene.systems["mindar-image-system"];
+                    
+                    scene.addEventListener('arReady', () => {
+                        status.textContent = 'Point camera at marker';
+                    });
+                    
+                    // Handle marker detection
+                    const marker = document.querySelector('[mindar-image-target]');
+                    marker.addEventListener('targetFound', () => {
+                        if (!modelDetached) {
+                            status.textContent = 'Marker detected - detaching model';
+                            
+                            setTimeout(() => {
+                                currentModel = detachModel();
+                                if (currentModel) {
+                                    modelDetached = true;
+                                    status.textContent = 'Model detached - use gestures to rotate/scale';
+                                    initGestures();
+                                }
+                            }, 100);
+                        } else {
+                            status.textContent = 'Model already detached';
+                        }
+                    });
+
+                    arSystem.start();
+                    
+                } catch (error) {
+                    status.textContent = 'Camera access denied - please allow camera';
+                    console.error(error);
                 }
+            }
+
+            // Start everything when scene is loaded
+            scene.addEventListener('loaded', function() {
+                setTimeout(startAR, 1000);
             });
         });
     </script>
