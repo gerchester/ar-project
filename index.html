@@ -81,31 +81,45 @@
 
             // Simple detachment function
             function detachModel() {
-                const marker = document.querySelector('[mindar-image-target]');
-                const originalModel = marker.querySelector('a-gltf-model');
-                
-                if (!originalModel) return null;
+    const marker = document.querySelector('[mindar-image-target]');
+    const originalModel = marker.querySelector('a-gltf-model');
 
-                // Get the current world position
-                const worldPos = new THREE.Vector3();
-                originalModel.object3D.getWorldPosition(worldPos);
+    if (!originalModel) return null;
 
-                // Create new model in persistent container
-                const persistentContainer = document.getElementById('persistent-model-container');
-                const newModel = document.createElement('a-entity');
-                newModel.setAttribute('gltf-model', '#model1');
-                newModel.setAttribute('scale', '1 1 1');
-                newModel.setAttribute('rotation', '180 0 0');
-                newModel.setAttribute('position', worldPos);
-                
-                persistentContainer.appendChild(newModel);
+    const persistentContainer = document.getElementById('persistent-model-container');
 
-                // Remove the original model from marker
-                marker.removeChild(originalModel);
+    // создаём новый объект
+    const newModel = document.createElement('a-entity');
+    newModel.setAttribute('gltf-model', '#model1');
+    newModel.setAttribute('scale', '1 1 1');
+    newModel.setAttribute('rotation', '180 0 0');
 
-                return newModel;
-            }
+    // ждём пока оригинал реально загрузится в three.js
+    originalModel.object3D.updateMatrixWorld(true);
 
+    // копируем позицию, вращение и масштаб напрямую из object3D
+    const pos = new THREE.Vector3();
+    const rot = new THREE.Euler();
+    const scale = new THREE.Vector3();
+
+    originalModel.object3D.getWorldPosition(pos);
+    originalModel.object3D.getWorldScale(scale);
+    originalModel.object3D.getWorldQuaternion(rot);
+
+    // присваиваем напрямую в three.js объект нового энтити
+    newModel.addEventListener('model-loaded', () => {
+        newModel.object3D.position.copy(pos);
+        newModel.object3D.quaternion.copy(rot);
+        newModel.object3D.scale.copy(scale);
+    });
+
+    persistentContainer.appendChild(newModel);
+
+    // просто скрываем оригинал (чтобы не мигал)
+    originalModel.setAttribute('visible', 'false');
+
+    return newModel;
+}
             // Start AR
             async function startAR() {
                 try {
@@ -154,3 +168,4 @@
     </script>
 </body>
 </html>
+
