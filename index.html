@@ -105,6 +105,7 @@
     pos.applyMatrix4(cameraObj.matrixWorld);  // перевести в мировые координаты
 
     newModel.object3D.position.copy(pos);
+    console.log("Model world posotion:", newModel.object3D.position);            
 
     // добавить в persistent контейнер (в сцену)
     persistentContainer.appendChild(newModel);
@@ -168,4 +169,5 @@
     </script>
 </body>
 </html>
+
 
