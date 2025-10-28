@@ -9,7 +9,6 @@
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
     <script src="./hammer.min.js"></script>
     <style>
-        /* Your existing CSS remains the same */
         * {
             margin: 0;
             padding: 0;
@@ -29,6 +28,7 @@
             left: 0;
             width: 100%;
             height: 100%;
+            touch-action: none; /* Important for gesture controls */
         }
         
         .status {
@@ -124,7 +124,7 @@
         // Global variables
         let currentModel = null;
         let isModelDetached = false;
-        let hammerManager = null; // Single instance for gesture controls
+        let hammerManager = null;
 
         // Auto-play animation component
         AFRAME.registerComponent('auto-play-animation', {
@@ -141,31 +141,46 @@
             }
         });
 
-        // Detachment functionality - SIMPLIFIED VERSION
+        // Improved detachment functionality
         function detachModelFromMarker(marker) {
-            const model = marker.querySelector('a-gltf-model');
-            if (!model) return null;
+            const originalModel = marker.querySelector('a-gltf-model');
+            if (!originalModel) return null;
 
             console.log("Detaching model from marker");
 
+            // Get the world position and rotation BEFORE removing
+            const worldPos = new THREE.Vector3();
+            const worldRot = new THREE.Quaternion();
+            originalModel.object3D.getWorldPosition(worldPos);
+            originalModel.object3D.getWorldQuaternion(worldRot);
+
             // Create a clone of the model
             const detachedModel = document.createElement('a-entity');
-            detachedModel.setAttribute('gltf-model', model.getAttribute('gltf-model'));
-            detachedModel.setAttribute('scale', model.getAttribute('scale'));
-            detachedModel.setAttribute('rotation', model.getAttribute('rotation'));
+            detachedModel.setAttribute('gltf-model', originalModel.getAttribute('gltf-model'));
+            detachedModel.setAttribute('scale', originalModel.getAttribute('scale'));
             
-            // Get the marker's position to place the model in the same spot
-            const markerPosition = marker.object3D.getWorldPosition(new THREE.Vector3());
+            // Set the world position and rotation
             detachedModel.setAttribute('position', {
-                x: markerPosition.x,
-                y: markerPosition.y, 
-                z: markerPosition.z
+                x: worldPos.x,
+                y: worldPos.y, 
+                z: worldPos.z
+            });
+            
+            // Convert quaternion to Euler rotation for A-Frame
+            const euler = new THREE.Euler().setFromQuaternion(worldRot);
+            detachedModel.setAttribute('rotation', {
+                x: THREE.Math.radToDeg(euler.x),
+                y: THREE.Math.radToDeg(euler.y),
+                z: THREE.Math.radToDeg(euler.z)
             });
 
             // Add to scene
             document.querySelector('a-scene').appendChild(detachedModel);
 
-            console.log("Model detached and added to scene");
+            // Remove the original model from marker completely
+            marker.removeChild(originalModel);
+
+            console.log("Model detached and added to scene at position:", worldPos);
 
             return detachedModel;
         }
@@ -180,7 +195,9 @@
             }
 
             // Create new hammer manager
-            hammerManager = new Hammer.Manager(arContainer);
+            hammerManager = new Hammer.Manager(arContainer, {
+                touchAction: 'none' // Important for proper touch handling
+            });
 
             // Create gestures
             const Pan = new Hammer.Pan({ threshold: 0, pointers: 1 });
@@ -194,13 +211,17 @@
 
             // Pan for rotation
             hammerManager.on('panstart panmove', function(event) {
-                if (!currentModel) return;
+                if (!currentModel) {
+                    console.log("No current model for pan gesture");
+                    return;
+                }
 
                 const rotation = currentModel.getAttribute('rotation');
 
                 if (event.type === 'panstart') {
                     lastPanPosition.x = event.center.x;
                     lastPanPosition.y = event.center.y;
+                    console.log("Pan started");
                 } else if (event.type === 'panmove') {
                     const deltaX = event.center.x - lastPanPosition.x;
                     const deltaY = event.center.y - lastPanPosition.y;
@@ -217,12 +238,16 @@
 
             // Pinch for scale
             hammerManager.on('pinchstart pinchmove', function(event) {
-                if (!currentModel) return;
+                if (!currentModel) {
+                    console.log("No current model for pinch gesture");
+                    return;
+                }
 
                 let scale = currentModel.getAttribute('scale');
 
                 if (event.type === 'pinchstart') {
                     lastScale = event.scale;
+                    console.log("Pinch started");
                 } else if (event.type === 'pinchmove') {
                     const scaleFactor = event.scale / lastScale;
 
@@ -239,6 +264,8 @@
                     lastScale = event.scale;
                 }
             });
+
+            console.log("Gesture controls setup complete");
         }
 
         // Main initialization
@@ -247,8 +274,9 @@
             const loading = document.getElementById('loading');
             const sceneEl = document.querySelector('a-scene');
 
-            // Setup gesture controls once
+            // Setup gesture controls when scene is ready
             sceneEl.addEventListener('loaded', function() {
+                console.log("Scene loaded, setting up gesture controls");
                 setupGestureControls();
             });
 
@@ -283,6 +311,7 @@
                 sceneEl.addEventListener('arReady', function() {
                     status.textContent = 'Наведите камеру на маркер';
                     loading.style.display = 'none';
+                    console.log("AR system ready");
                 });
                 
                 sceneEl.addEventListener('arError', function(evt) {
@@ -293,36 +322,41 @@
                 
                 // Start AR system
                 arSystem.start();
+                console.log("AR system started");
                 
                 // Handle marker detection
                 const markers = document.querySelectorAll('[mindar-image-target]');
                 
                 markers.forEach((marker, index) => {
                     marker.addEventListener('targetFound', function() {
+                        console.log("Marker found:", index);
                         status.textContent = 'Маркер ' + index + ' обнаружен';
                         
                         if (!isModelDetached) {
-                            // Set current model to the one attached to marker initially
-                            currentModel = marker.querySelector('a-gltf-model');
+                            console.log("Detaching model...");
                             
-                            // Small delay to ensure model is properly positioned
+                            // Small delay to ensure model is properly positioned by MindAR
                             setTimeout(() => {
                                 const detachedModel = detachModelFromMarker(marker);
                                 if (detachedModel) {
                                     currentModel = detachedModel;
                                     isModelDetached = true;
                                     status.textContent = 'Модель зафиксирована на экране';
-                                    
-                                    // No need to setup new gesture controls - they're already using currentModel
+                                    console.log("Model successfully detached and persistent");
                                 }
-                            }, 100);
+                            }, 200); // Increased delay for better positioning
                         }
                     });
                     
                     marker.addEventListener('targetLost', function() {
+                        console.log("Marker lost");
+                        // Don't change status if model is detached - it should stay on screen
                         if (!isModelDetached) {
                             status.textContent = 'Point camera at marker';
                             currentModel = null;
+                        } else {
+                            // Model is detached, so it should stay visible
+                            console.log("Model is detached and should remain visible");
                         }
                     });
                 });
