@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebAR - Persistent Model</title>
+    <title>WebAR - Single Persistent Model</title>
     <script src="./aframe.min.js"></script>
     <script src="./mindar-image-aframe.prod.js"></script>
     <script src="./hammer.min.js"></script>
@@ -172,7 +172,7 @@
             const status = document.getElementById('status');
             const scene = document.querySelector('a-scene');
             
-            let detachedModel = null;
+            let currentDetachedModel = null; // Только одна активная модель
             let hammerManager = null;
 
             // Initialize gesture controls for detached model
@@ -251,11 +251,14 @@
                         console.log('📍 Marker found');
                         status.textContent = 'Marker detected';
                         
-                        if (detachedModel) {
-                            status.textContent = 'Model already detached';
-                            return;
+                        // УДАЛЯЕМ ПРЕДЫДУЩУЮ МОДЕЛЬ, ЕСЛИ ОНА ЕСТЬ
+                        if (currentDetachedModel) {
+                            scene.removeChild(currentDetachedModel);
+                            currentDetachedModel = null;
+                            console.log('🗑️ Previous model removed');
                         }
 
+                        // Даём время MindAR правильно позиционировать модель
                         setTimeout(() => {
                             const originalModel = marker.querySelector('a-gltf-model');
                             if (!originalModel) return;
@@ -266,7 +269,7 @@
                             marker.object3D.getWorldQuaternion(worldQuat);
 
                             // Создаём новую модель
-                            detachedModel = document.createElement('a-entity');
+                            const detachedModel = document.createElement('a-entity');
                             
                             // Копируем атрибуты оригинальной модели
                             const modelSrc = originalModel.getAttribute('src');
@@ -290,22 +293,23 @@
                             // Добавляем в сцену
                             scene.appendChild(detachedModel);
 
-                            // Скрываем оригинал
+                            // Скрываем оригинал (чтобы не моргал при повторном наведении)
                             originalModel.setAttribute('visible', false);
 
-                            // Инициализируем жесты
-                            initGestures(detachedModel);
+                            // Сохраняем как текущую модель
+                            currentDetachedModel = detachedModel;
+
+                            // Инициализируем жесты для новой модели
+                            initGestures(currentDetachedModel);
 
                             status.textContent = 'Model detached - use gestures to rotate/scale/move';
-                            console.log('✅ Model detached and persistent');
+                            console.log('✅ New model detached and persistent');
                         }, 300);
                     });
 
                     marker.addEventListener('targetLost', () => {
-                        console.log('❌ Marker lost (model stays)');
-                        if (!detachedModel) {
-                            status.textContent = 'Point camera at marker';
-                        }
+                        console.log('❌ Marker lost');
+                        // Не меняем статус, если модель уже отвязана
                     });
                 });
             }
@@ -333,7 +337,7 @@
 
             // Start when scene is loaded
             scene.addEventListener('loaded', () => {
-                setupMarkerHandlers(); // Добавляем обработчики для всех маркеров
+                setupMarkerHandlers();
                 setTimeout(startAR, 1000);
             });
         });
