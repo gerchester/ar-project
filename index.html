@@ -82,8 +82,8 @@
 
                 hammerManager.on('pan', function(e) {
                     const rotation = model.getAttribute('rotation');
-                    rotation.y += e.deltaX * 0.2;
-                    rotation.x += e.deltaY * 0.2;
+                    rotation.y += e.deltaX * 0.05;
+                    rotation.x += e.deltaY * 0.05;
                     model.setAttribute('rotation', rotation);
                 });
 
@@ -187,6 +187,7 @@
     </script>
 </body>
 </html>
+
 
 
 
