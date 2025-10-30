@@ -216,8 +216,8 @@ document.addEventListener('DOMContentLoaded', () => {
     hammerManager.on('twofingerpan', (e) => {
       const pos = model.getAttribute('position');
       model.setAttribute('position', {
-        x: pos.x + e.deltaX / 100,
-        y: pos.y - e.deltaY / 100,
+        x: pos.x + e.deltaX / 50,
+        y: pos.y - e.deltaY / 50,
         z: pos.z,
       });
     });
@@ -250,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
           const detachedModel = document.createElement('a-entity');
           const modelSrc = originalModel.getAttribute('src');
-          const modelScale = Object.assign({}, originalModel.getAttribute('scale'));
+          const modelScale = { x: 2, y: 2, z: 2 };
           const modelRotation = Object.assign({}, originalModel.getAttribute('rotation'));
           const animAttr = originalModel.getAttribute('animation-mixer');
 
@@ -324,5 +324,6 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
 
 
