@@ -76,9 +76,18 @@
                 const pan = new Hammer.Pan({ direction: Hammer.DIRECTION_ALL });
                 // Pinch for scale  
                 const pinch = new Hammer.Pinch();
+                const twoFingerPan = new Hammer.Pan({ 
+        event: 'twofingerpan', 
+        pointers: 2, 
+        threshold: 0 
+    });
                 
                 hammerManager.add(pan);
                 hammerManager.add(pinch);
+                 hammerManager.add(twoFingerPan);
+
+                 pinch.recognizeWith(twoFingerPan);
+    twoFingerPan.recognizeWith(pinch);
 
                 let initialScale = 1; // ДОБАВИЛ ОБЪЯВЛЕНИЕ ПЕРЕМЕННОЙ
 
@@ -108,6 +117,20 @@
                     // ОБНОВЛЯЕМ ДЛЯ СЛЕДУЮЩЕГО КАДРА
                     initialScale = e.scale;
                 });
+                 // ПЕРЕМЕЩЕНИЕ - двумя пальцами (НОВЫЙ БЛОК)
+    hammerManager.on('twofingerpan', function(e) {
+        // Получаем текущую позицию модели
+        const position = model.getAttribute('position');
+
+        // Изменяем позицию на основе движения пальцев
+        // Чувствительность можно регулировать делителем
+        position.x += e.deltaX / 100;  // Делитель 100 - регулируйте по вкусу
+        position.y -= e.deltaY / 100;  // Ось Y инвертирована
+
+        // Применяем новую позицию
+        model.setAttribute('position', position);
+    });
+
 
                 console.log("Gesture controls initialized");
             }
@@ -133,7 +156,7 @@
                     // Создаём новый объект вне маркера
                     detachedModel = document.createElement('a-entity');
                     detachedModel.setAttribute('gltf-model', '#model1');
-                    detachedModel.setAttribute('scale', '1 1 1'); // ВЕРНУЛ НОРМАЛЬНЫЙ МАСШТАБ
+                    detachedModel.setAttribute('scale', '20 20 20'); // ВЕРНУЛ НОРМАЛЬНЫЙ МАСШТАБ
                     
                     // Устанавливаем мировые координаты
                     detachedModel.object3D.position.copy(worldPos);
@@ -189,3 +212,4 @@
     </script>
 </body>
 </html>
+
