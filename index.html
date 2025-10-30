@@ -231,7 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
     markers.forEach((marker, index) => {
       marker.addEventListener('targetFound', () => {
         console.log(`📍 Marker ${index} found`);
-        status.textContent = Marker ${index} detected;
+        status.textContent = `Marker ${index} detected`; // 🔧 исправлены кавычки
 
         // Удаляем предыдущую модель
         detachedModels.forEach(m => {
@@ -267,8 +267,10 @@ document.addEventListener('DOMContentLoaded', () => {
             detachedModel.setAttribute('animation-mixer', animAttr);
             // Принудительно пересоздаём mixer
             detachedModel.addEventListener('model-loaded', () => {
-              detachedModel.components['animation-mixer'].stopAction();
-              detachedModel.components['animation-mixer'].playAction();
+              if (detachedModel.components['animation-mixer']) {
+                detachedModel.components['animation-mixer'].stopAction();
+                detachedModel.components['animation-mixer'].playAction();
+              }
             });
           }
 
@@ -281,8 +283,8 @@ document.addEventListener('DOMContentLoaded', () => {
           // Управление
           initGestures(detachedModel);
 
-          detachedModels[index] = detachedModel;
-          status.textContent = Model ${index} detached — gestures active;
+          detachedModels.push(detachedModel); // 🔧 используем push вместо индекса
+          status.textContent = `Model ${index} detached — gestures active`; // 🔧 исправлены кавычки
 
           console.log(`✅ Model ${index} detached and animated`);
         }, 300);
@@ -322,4 +324,5 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
 
