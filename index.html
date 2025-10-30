@@ -96,9 +96,7 @@
                     scale.z *= scaleFactor;
                     
                     // Limit scale
-                    scale.x = Math.max(0.1, Math.min(5, scale.x));
-                    scale.y = Math.max(0.1, Math.min(5, scale.y));
-                    scale.z = Math.max(0.1, Math.min(5, scale.z));
+                   
                     
                     model.setAttribute('scale', scale);
                     lastScale = e.scale;
@@ -184,4 +182,5 @@
     </script>
 </body>
 </html>
+
 
