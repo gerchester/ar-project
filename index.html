@@ -250,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
           const detachedModel = document.createElement('a-entity');
           const modelSrc = originalModel.getAttribute('src');
-          const modelScale = { x: 2, y: 2, z: 2 };
+          const modelScale = { x: 100, y: 100, z: 100 };
           const modelRotation = Object.assign({}, originalModel.getAttribute('rotation'));
           const animAttr = originalModel.getAttribute('animation-mixer');
 
@@ -324,6 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
 
 
 
