@@ -25,7 +25,7 @@
                          autoStart: false; uiLoading: no; uiScanning: no;"
             embedded
             color-space="sRGB"
-            renderer="colorManagement: true, physicallyCorrectLights"
+            renderer="colorManagement: true; physicallyCorrectLights: true;"
         >
             <a-assets>
                 <a-asset-item id="model1" src="./models/model1_Lotok_gluhoy50.glb?v=1"></a-asset-item>
@@ -33,9 +33,11 @@
 
             <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
             
-            <!-- Lighting -->
+            <!-- Lighting - ДОБАВИЛ ТЕ ЖЕ ИСТОЧНИКИ СВЕТА КАК В ПЕРВОМ КОДЕ -->
             <a-light type="ambient" color="#FFF" intensity="2.5"></a-light>
             <a-light type="directional" color="#FFF" intensity="2" position="2 5 3"></a-light>
+            <a-light type="directional" color="#fff" intensity="1" position="-3 2 -2"></a-light>
+            <a-light type="directional" color="#fff" intensity="1" position="0 3 -4"></a-light>
 
             <!-- Marker with original model (will be hidden after detachment) -->
             <a-entity mindar-image-target="targetIndex: 0" id="marker">
@@ -78,7 +80,7 @@
                 hammerManager.add(pan);
                 hammerManager.add(pinch);
 
-                let lastScale = 1;
+                let initialScale = 1; // ДОБАВИЛ ОБЪЯВЛЕНИЕ ПЕРЕМЕННОЙ
 
                 hammerManager.on('pan', function(e) {
                     const rotation = model.getAttribute('rotation');
@@ -87,28 +89,28 @@
                     model.setAttribute('rotation', rotation);
                 });
 
-                 // МАСШТАБИРОВАНИЕ - БЕЗ ОГРАНИЧЕНИЙ И С ПРАВИЛЬНОЙ ЛОГИКОЙ
-    hammerManager.on('pinchstart', function(e) {
-        initialScale = e.scale; // ЗАПОМИНАЕМ НАЧАЛО ЖЕСТА
-    });
+                // МАСШТАБИРОВАНИЕ - БЕЗ ОГРАНИЧЕНИЙ И С ПРАВИЛЬНОЙ ЛОГИКОЙ
+                hammerManager.on('pinchstart', function(e) {
+                    initialScale = e.scale; // ЗАПОМИНАЕМ НАЧАЛО ЖЕСТА
+                });
 
-    hammerManager.on('pinchmove', function(e) {
-        let scale = model.getAttribute('scale');
-        const scaleFactor = e.scale / initialScale;
-        
-        // ПРОСТОЕ УМНОЖЕНИЕ БЕЗ ЛИМИТОВ
-        scale.x = scale.x * scaleFactor;
-        scale.y = scale.y * scaleFactor; 
-        scale.z = scale.z * scaleFactor;
-        
-        model.setAttribute('scale', scale);
-        
-        // ОБНОВЛЯЕМ ДЛЯ СЛЕДУЮЩЕГО КАДРА
-        initialScale = e.scale;
-    });
+                hammerManager.on('pinchmove', function(e) {
+                    let scale = model.getAttribute('scale');
+                    const scaleFactor = e.scale / initialScale;
+                    
+                    // ПРОСТОЕ УМНОЖЕНИЕ БЕЗ ЛИМИТОВ
+                    scale.x = scale.x * scaleFactor;
+                    scale.y = scale.y * scaleFactor; 
+                    scale.z = scale.z * scaleFactor;
+                    
+                    model.setAttribute('scale', scale);
+                    
+                    // ОБНОВЛЯЕМ ДЛЯ СЛЕДУЮЩЕГО КАДРА
+                    initialScale = e.scale;
+                });
 
-    console.log("Gesture controls initialized");
-}
+                console.log("Gesture controls initialized");
+            }
 
             // Marker detection handler
             marker.addEventListener('targetFound', () => {
@@ -131,7 +133,7 @@
                     // Создаём новый объект вне маркера
                     detachedModel = document.createElement('a-entity');
                     detachedModel.setAttribute('gltf-model', '#model1');
-                    detachedModel.setAttribute('scale', '10 10 10');
+                    detachedModel.setAttribute('scale', '1 1 1'); // ВЕРНУЛ НОРМАЛЬНЫЙ МАСШТАБ
                     
                     // Устанавливаем мировые координаты
                     detachedModel.object3D.position.copy(worldPos);
@@ -187,8 +189,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
