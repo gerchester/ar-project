@@ -258,39 +258,40 @@
                         }
 
                         setTimeout(() => {
-                            const originalModel = marker.querySelector('a-gltf-model');
-                            if (!originalModel) return;
+  const originalModel = marker.querySelector('a-gltf-model');
+  if (!originalModel) return;
 
-                            const worldPos = new THREE.Vector3();
-                            const worldQuat = new THREE.Quaternion();
-                            marker.object3D.getWorldPosition(worldPos);
-                            marker.object3D.getWorldQuaternion(worldQuat);
+  const worldPos = new THREE.Vector3();
+  const worldQuat = new THREE.Quaternion();
+  marker.object3D.getWorldPosition(worldPos);
+  marker.object3D.getWorldQuaternion(worldQuat);
 
-                            const detachedModel = document.createElement('a-entity');
-                            const modelSrc = originalModel.getAttribute('src');
-                            const modelScale = originalModel.getAttribute('scale');
-                            const modelRotation = originalModel.getAttribute('rotation');
+  const detachedModel = document.createElement('a-entity');
+  const modelSrc = originalModel.getAttribute('src');
+  const modelScale = originalModel.getAttribute('scale');
+  const modelRotation = originalModel.getAttribute('rotation');
 
-                            detachedModel.setAttribute('gltf-model', modelSrc);
-                            detachedModel.setAttribute('scale', modelScale);
-                            detachedModel.setAttribute('rotation', modelRotation);
-                            detachedModel.object3D.position.copy(worldPos);
-                            detachedModel.object3D.quaternion.copy(worldQuat);
+  detachedModel.setAttribute('gltf-model', modelSrc);
+  detachedModel.setAttribute('scale', modelScale);
+  detachedModel.setAttribute('rotation', modelRotation);
 
-                            const animationMixer = originalModel.getAttribute('animation-mixer');
-                            if (animationMixer) {
-                                detachedModel.setAttribute('animation-mixer', animationMixer);
-                            }
+  // Присваиваем мировые координаты
+  detachedModel.object3D.position.copy(worldPos);
+  detachedModel.object3D.quaternion.copy(worldQuat);
 
-                            scene.appendChild(detachedModel);
-                            originalModel.setAttribute('visible', false);
+  // Добавляем в реальную трёхмерную сцену, минуя MindAR
+  scene.object3D.add(detachedModel.object3D);
 
-                            initGestures(detachedModel);
+  // Убираем оригинал, чтобы он не маячил
+  originalModel.parentNode.removeChild(originalModel);
 
-                            detachedModels[index] = detachedModel; // сохраняем
-                            status.textContent = `Model ${index} detached`; // ИСПРАВЛЕНО: правильные кавычки
-                            console.log(`✅ Model ${index} detached and persistent`);
-                        }, 300);
+  // Подключаем управление
+  initGestures(detachedModel);
+
+  detachedModels[index] = detachedModel;
+  status.textContent = Model ${index} detached;
+  console.log(`✅ Model ${index} detached and persistent`);
+}, 300);
                     });
 
                     marker.addEventListener('targetLost', () => {
@@ -332,3 +333,4 @@
     </script>
 </body>
 </html>
+
