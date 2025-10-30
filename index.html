@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebAR - Single Persistent Model</title>
+    <title>WebAR - Persistent Model</title>
     <script src="./aframe.min.js"></script>
     <script src="./mindar-image-aframe.prod.js"></script>
     <script src="./hammer.min.js"></script>
@@ -59,8 +59,7 @@
             <a-light type="directional" color="#fff" intensity="1" position="-3 2 -2"></a-light>
             <a-light type="directional" color="#fff" intensity="1" position="0 3 -4"></a-light>
 
-            <!-- Маркеры -->
-            <a-entity mindar-image-target="targetIndex: 0">
+           <a-entity mindar-image-target="targetIndex: 0">
                 <a-gltf-model src="#model1" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
             </a-entity>
 
@@ -172,7 +171,8 @@
             const status = document.getElementById('status');
             const scene = document.querySelector('a-scene');
             
-            let currentDetachedModel = null; // Только одна активная модель
+            const detachedModels = {}; // Объект для хранения всех отвязанных моделей
+            let currentGestureModel = null; // Модель, которой сейчас управляют жесты
             let hammerManager = null;
 
             // Initialize gesture controls for detached model
@@ -239,7 +239,7 @@
                     model.setAttribute('position', position);
                 });
 
-                console.log("Gesture controls initialized");
+                console.log("Gesture controls initialized for model");
             }
 
             // Обработчик для ВСЕХ маркеров
@@ -247,18 +247,19 @@
                 const markers = document.querySelectorAll('[mindar-image-target]');
                 
                 markers.forEach((marker) => {
+                    // Получаем индекс маркера
+                    const targetIndex = marker.getAttribute('mindar-image-target').targetIndex;
+                    
                     marker.addEventListener('targetFound', () => {
-                        console.log('📍 Marker found');
-                        status.textContent = 'Marker detected';
+                        console.log(`📍 Marker ${targetIndex} found`);
+                        status.textContent = `Marker ${targetIndex} detected`;
                         
-                        // УДАЛЯЕМ ПРЕДЫДУЩУЮ МОДЕЛЬ, ЕСЛИ ОНА ЕСТЬ
-                        if (currentDetachedModel) {
-                            scene.removeChild(currentDetachedModel);
-                            currentDetachedModel = null;
-                            console.log('🗑️ Previous model removed');
+                        // Если для этого маркера уже отвязана модель — ничего не делаем
+                        if (detachedModels[targetIndex]) {
+                            status.textContent = `Model ${targetIndex} already detached`;
+                            return;
                         }
 
-                        // Даём время MindAR правильно позиционировать модель
                         setTimeout(() => {
                             const originalModel = marker.querySelector('a-gltf-model');
                             if (!originalModel) return;
@@ -293,23 +294,26 @@
                             // Добавляем в сцену
                             scene.appendChild(detachedModel);
 
-                            // Скрываем оригинал (чтобы не моргал при повторном наведении)
+                            // Скрываем оригинал
                             originalModel.setAttribute('visible', false);
 
-                            // Сохраняем как текущую модель
-                            currentDetachedModel = detachedModel;
+                            // Сохраняем в наш объект detachedModels
+                            detachedModels[targetIndex] = detachedModel;
+                            
+                            // Устанавливаем эту модель как активную для жестов
+                            currentGestureModel = detachedModel;
+                            initGestures(currentGestureModel);
 
-                            // Инициализируем жесты для новой модели
-                            initGestures(currentDetachedModel);
-
-                            status.textContent = 'Model detached - use gestures to rotate/scale/move';
-                            console.log('✅ New model detached and persistent');
+                            status.textContent = `Model ${targetIndex} detached - use gestures to control`;
+                            console.log(`✅ Model ${targetIndex} detached and persistent`);
                         }, 300);
                     });
 
                     marker.addEventListener('targetLost', () => {
-                        console.log('❌ Marker lost');
-                        // Не меняем статус, если модель уже отвязана
+                        console.log(`❌ Marker ${targetIndex} lost`);
+                        if (!detachedModels[targetIndex]) {
+                            status.textContent = 'Point camera at marker';
+                        }
                     });
                 });
             }
