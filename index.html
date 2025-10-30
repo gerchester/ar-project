@@ -172,7 +172,7 @@
             const status = document.getElementById('status');
             const scene = document.querySelector('a-scene');
             
-            const detachedModels = {}; // ИСПРАВЛЕНО: правильное имя переменной
+            let detachedModel = null;
             let hammerManager = null;
 
             // Initialize gesture controls for detached model
@@ -246,57 +246,64 @@
             function setupMarkerHandlers() {
                 const markers = document.querySelectorAll('[mindar-image-target]');
                 
-                markers.forEach((marker, index) => {
+                markers.forEach((marker) => {
                     marker.addEventListener('targetFound', () => {
-                        console.log(`📍 Marker ${index} found`);
-                        status.textContent = `Marker ${index} detected`; // ИСПРАВЛЕНО: правильные кавычки
-
-                        // Если для этого маркера уже отвязана модель — ничего не делаем
-                        if (detachedModels[index]) { // ИСПРАВЛЕНО: правильное имя переменной
-                            status.textContent = `Model ${index} already detached`; // ИСПРАВЛЕНО: правильные кавычки
+                        console.log('📍 Marker found');
+                        status.textContent = 'Marker detected';
+                        
+                        if (detachedModel) {
+                            status.textContent = 'Model already detached';
                             return;
                         }
 
                         setTimeout(() => {
-  const originalModel = marker.querySelector('a-gltf-model');
-  if (!originalModel) return;
+                            const originalModel = marker.querySelector('a-gltf-model');
+                            if (!originalModel) return;
 
-  const worldPos = new THREE.Vector3();
-  const worldQuat = new THREE.Quaternion();
-  marker.object3D.getWorldPosition(worldPos);
-  marker.object3D.getWorldQuaternion(worldQuat);
+                            const worldPos = new THREE.Vector3();
+                            const worldQuat = new THREE.Quaternion();
+                            marker.object3D.getWorldPosition(worldPos);
+                            marker.object3D.getWorldQuaternion(worldQuat);
 
-  const detachedModel = document.createElement('a-entity');
-  const modelSrc = originalModel.getAttribute('src');
-  const modelScale = originalModel.getAttribute('scale');
-  const modelRotation = originalModel.getAttribute('rotation');
+                            // Создаём новую модель
+                            detachedModel = document.createElement('a-entity');
+                            
+                            // Копируем атрибуты оригинальной модели
+                            const modelSrc = originalModel.getAttribute('src');
+                            const modelScale = originalModel.getAttribute('scale');
+                            const modelRotation = originalModel.getAttribute('rotation');
+                            
+                            detachedModel.setAttribute('gltf-model', modelSrc);
+                            detachedModel.setAttribute('scale', modelScale);
+                            detachedModel.setAttribute('rotation', modelRotation);
+                            
+                            // Устанавливаем мировые координаты
+                            detachedModel.object3D.position.copy(worldPos);
+                            detachedModel.object3D.quaternion.copy(worldQuat);
 
-  detachedModel.setAttribute('gltf-model', modelSrc);
-  detachedModel.setAttribute('scale', modelScale);
-  detachedModel.setAttribute('rotation', modelRotation);
+                            // Копируем анимацию если есть
+                            const animationMixer = originalModel.getAttribute('animation-mixer');
+                            if (animationMixer) {
+                                detachedModel.setAttribute('animation-mixer', animationMixer);
+                            }
 
-  // Присваиваем мировые координаты
-  detachedModel.object3D.position.copy(worldPos);
-  detachedModel.object3D.quaternion.copy(worldQuat);
+                            // Добавляем в сцену
+                            scene.appendChild(detachedModel);
 
-  // Добавляем в реальную трёхмерную сцену, минуя MindAR
-  scene.object3D.add(detachedModel.object3D);
+                            // Скрываем оригинал
+                            originalModel.setAttribute('visible', false);
 
-  // Убираем оригинал, чтобы он не маячил
-  originalModel.parentNode.removeChild(originalModel);
+                            // Инициализируем жесты
+                            initGestures(detachedModel);
 
-  // Подключаем управление
-  initGestures(detachedModel);
-
-  detachedModels[index] = detachedModel;
-  status.textContent = Model ${index} detached;
-  console.log(`✅ Model ${index} detached and persistent`);
-}, 300);
+                            status.textContent = 'Model detached - use gestures to rotate/scale/move';
+                            console.log('✅ Model detached and persistent');
+                        }, 300);
                     });
 
                     marker.addEventListener('targetLost', () => {
-                        console.log(`❌ Marker ${index} lost`);
-                        if (!detachedModels[index]) { // ИСПРАВЛЕНО: правильное имя переменной
+                        console.log('❌ Marker lost (model stays)');
+                        if (!detachedModel) {
                             status.textContent = 'Point camera at marker';
                         }
                     });
@@ -326,11 +333,10 @@
 
             // Start when scene is loaded
             scene.addEventListener('loaded', () => {
-                setupMarkerHandlers();
+                setupMarkerHandlers(); // Добавляем обработчики для всех маркеров
                 setTimeout(startAR, 1000);
             });
         });
     </script>
 </body>
 </html>
-
