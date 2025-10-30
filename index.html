@@ -82,28 +82,33 @@
 
                 hammerManager.on('pan', function(e) {
                     const rotation = model.getAttribute('rotation');
-                    rotation.y += e.deltaX * 0.5;
-                    rotation.x += e.deltaY * 0.5;
+                    rotation.y += e.deltaX * 0.2;
+                    rotation.x += e.deltaY * 0.2;
                     model.setAttribute('rotation', rotation);
                 });
 
-                hammerManager.on('pinch', function(e) {
-                    let scale = model.getAttribute('scale');
-                    const scaleFactor = e.scale / lastScale;
-                    
-                    scale.x *= scaleFactor;
-                    scale.y *= scaleFactor;
-                    scale.z *= scaleFactor;
-                    
-                    // Limit scale
-                   
-                    
-                    model.setAttribute('scale', scale);
-                    lastScale = e.scale;
-                });
+                 // МАСШТАБИРОВАНИЕ - БЕЗ ОГРАНИЧЕНИЙ И С ПРАВИЛЬНОЙ ЛОГИКОЙ
+    hammerManager.on('pinchstart', function(e) {
+        initialScale = e.scale; // ЗАПОМИНАЕМ НАЧАЛО ЖЕСТА
+    });
 
-                console.log("Gesture controls initialized for detached model");
-            }
+    hammerManager.on('pinchmove', function(e) {
+        let scale = model.getAttribute('scale');
+        const scaleFactor = e.scale / initialScale;
+        
+        // ПРОСТОЕ УМНОЖЕНИЕ БЕЗ ЛИМИТОВ
+        scale.x = scale.x * scaleFactor;
+        scale.y = scale.y * scaleFactor; 
+        scale.z = scale.z * scaleFactor;
+        
+        model.setAttribute('scale', scale);
+        
+        // ОБНОВЛЯЕМ ДЛЯ СЛЕДУЮЩЕГО КАДРА
+        initialScale = e.scale;
+    });
+
+    console.log("Gesture controls initialized");
+}
 
             // Marker detection handler
             marker.addEventListener('targetFound', () => {
@@ -182,6 +187,7 @@
     </script>
 </body>
 </html>
+
 
 
 
