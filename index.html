@@ -3,124 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebAR with Rotation Controls</title>
+    <title>WebAR - Persistent Model</title>
     <script src="./aframe.min.js"></script>
     <script src="./mindar-image-aframe.prod.js"></script>
     <script src="./hammer.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #000; overflow: hidden; width: 100vw; height: 100vh; }
+        body { background: #000; overflow: hidden; }
         #ar-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
         .status { 
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%); 
-            color: #fff; background: rgba(0, 0, 0, 0.3); padding: 10px 20px; 
+            color: #fff; background: rgba(0, 0, 0, 0.6); padding: 10px 20px; 
             border-radius: 20px; font-family: Arial; z-index: 1000; 
         }
     </style>
 </head>
 <body>
     <div id="ar-container">
-        <a-scene 
+        <a-scene
             mindar-image="imageTargetSrc: ./targets21.mind; 
-                         uiLoading: no; uiScanning: no; uiError: no; 
-                         autoStart: false;"
-            embedded>
-             
+                         autoStart: false; uiLoading: no; uiScanning: no;"
+            embedded
+            color-space="sRGB"
+            renderer="colorManagement: true, physicallyCorrectLights"
+        >
             <a-assets>
                 <a-asset-item id="model1" src="./models/model1_Lotok_gluhoy50.glb?v=1"></a-asset-item>
             </a-assets>
 
+            <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+            
+            <!-- Lighting -->
             <a-light type="ambient" color="#FFF" intensity="2.5"></a-light>
             <a-light type="directional" color="#FFF" intensity="2" position="2 5 3"></a-light>
 
-            <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-
-            <!-- This is the model that gets detected and will be replaced -->
-            <a-entity mindar-image-target="targetIndex: 0">
-                <a-gltf-model src="#model1" position="0 0 0" scale="1 1 1" rotation="180 0 0"></a-gltf-model>
+            <!-- Marker with original model (will be hidden after detachment) -->
+            <a-entity mindar-image-target="targetIndex: 0" id="marker">
+                <a-entity id="spawn-model" gltf-model="#model1" 
+                         position="0 0 0" scale="1 1 1" rotation="180 0 0"
+                         visible="false">
+                </a-entity>
             </a-entity>
 
-            <!-- This is where our persistent model will be placed -->
-            <a-entity id="persistent-model-container"></a-entity>
         </a-scene>
     </div>
     
     <div class="status" id="status">Point camera at marker</div>
 
     <script>
-        let currentModel = null;
-        let modelDetached = false;
-        let hammer = null;
-
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', () => {
             const status = document.getElementById('status');
             const scene = document.querySelector('a-scene');
+            const marker = document.querySelector('#marker');
+            const spawnModel = document.querySelector('#spawn-model');
             
-            // Initialize gesture controls
-            function initGestures() {
-                const container = document.getElementById('ar-container');
-                hammer = new Hammer(container);
-                
-                hammer.get('pan').set({ direction: Hammer.DIRECTION_ALL });
-                hammer.get('pinch').set({ enable: true });
+            let detachedModel = null;
+            let hammerManager = null;
 
-                hammer.on('pan', function(e) {
-                    if (!currentModel) return;
-                    const rotation = currentModel.getAttribute('rotation');
+            // Initialize gesture controls for detached model
+            function initGestures(model) {
+                const container = document.getElementById('ar-container');
+                
+                if (hammerManager) {
+                    hammerManager.destroy();
+                }
+
+                hammerManager = new Hammer.Manager(container);
+                
+                // Pan for rotation
+                const pan = new Hammer.Pan({ direction: Hammer.DIRECTION_ALL });
+                // Pinch for scale  
+                const pinch = new Hammer.Pinch();
+                
+                hammerManager.add(pan);
+                hammerManager.add(pinch);
+
+                let lastScale = 1;
+
+                hammerManager.on('pan', function(e) {
+                    const rotation = model.getAttribute('rotation');
                     rotation.y += e.deltaX * 0.5;
                     rotation.x += e.deltaY * 0.5;
-                    currentModel.setAttribute('rotation', rotation);
+                    model.setAttribute('rotation', rotation);
                 });
 
-                hammer.on('pinch', function(e) {
-                    if (!currentModel) return;
-                    let scale = currentModel.getAttribute('scale');
-                    const newScale = Math.max(0.1, Math.min(3, e.scale));
-                    currentModel.setAttribute('scale', {x: newScale, y: newScale, z: newScale});
+                hammerManager.on('pinch', function(e) {
+                    let scale = model.getAttribute('scale');
+                    const scaleFactor = e.scale / lastScale;
+                    
+                    scale.x *= scaleFactor;
+                    scale.y *= scaleFactor;
+                    scale.z *= scaleFactor;
+                    
+                    // Limit scale
+                    scale.x = Math.max(0.1, Math.min(5, scale.x));
+                    scale.y = Math.max(0.1, Math.min(5, scale.y));
+                    scale.z = Math.max(0.1, Math.min(5, scale.z));
+                    
+                    model.setAttribute('scale', scale);
+                    lastScale = e.scale;
                 });
 
-                console.log("Gesture controls initialized");
+                console.log("Gesture controls initialized for detached model");
             }
 
-            // FIXED: Completely remove original model from marker
-            function detachModel() {
-  const marker = document.querySelector('[mindar-image-target]');
-  const originalModel = marker.querySelector('a-gltf-model');
+            // Marker detection handler
+            marker.addEventListener('targetFound', () => {
+                console.log('📍 Marker found');
+                status.textContent = 'Marker detected';
+                
+                if (detachedModel) {
+                    status.textContent = 'Model already detached';
+                    return; // Уже отвязан
+                }
 
-  if (!originalModel) return null;
+                // Даём время MindAR правильно позиционировать модель
+                setTimeout(() => {
+                    // Получаем мировую позицию и поворот из marker
+                    const worldPos = new THREE.Vector3();
+                    const worldQuat = new THREE.Quaternion();
+                    marker.object3D.getWorldPosition(worldPos);
+                    marker.object3D.getWorldQuaternion(worldQuat);
 
-  const persistentContainer = document.getElementById('persistent-model-container');
+                    // Создаём новый объект вне маркера
+                    detachedModel = document.createElement('a-entity');
+                    detachedModel.setAttribute('gltf-model', '#model1');
+                    detachedModel.setAttribute('scale', '1 1 1');
+                    
+                    // Устанавливаем мировые координаты
+                    detachedModel.object3D.position.copy(worldPos);
+                    detachedModel.object3D.quaternion.copy(worldQuat);
 
-  // создаём новый entity и копируем модель
-  const newModel = document.createElement('a-entity');
-  newModel.setAttribute('gltf-model', '#model1');
-  newModel.setAttribute('scale', '1 1 1');
-  newModel.setAttribute('rotation', '0 0 0');
+                    // Добавляем напрямую в сцену
+                    scene.appendChild(detachedModel);
 
-  // позиция перед камерой
-  const camera = document.querySelector('a-camera');
-  const cameraWorldPos = new THREE.Vector3();
-  const cameraDirection = new THREE.Vector3();
+                    // Скрываем оригинал (чтобы не моргал)
+                    spawnModel.setAttribute('visible', false);
 
-  camera.object3D.getWorldPosition(cameraWorldPos);
-  camera.object3D.getWorldDirection(cameraDirection);
+                    // Инициализируем жесты для новой модели
+                    initGestures(detachedModel);
 
-  const modelPosition = cameraWorldPos.clone().add(cameraDirection.multiplyScalar(-1));
+                    status.textContent = 'Model detached - use gestures to rotate/scale';
+                    console.log('✅ Model detached and persistent');
+                }, 300);
+            });
 
-  // ВАЖНО: напрямую в object3D.position
-  newModel.object3D.position.copy(modelPosition);
-
-  // добавляем сразу в <a-scene>, не внутрь marker
-  document.querySelector('a-scene').appendChild(newModel);
-
-  // полностью удалить оригинал
-  if (originalModel && originalModel.parentNode) {
-    originalModel.parentNode.removeChild(originalModel);
-  }
-
-  console.log("✅ Detached model position:", newModel.object3D.position);
-  return newModel;
-}
+            marker.addEventListener('targetLost', () => {
+                console.log('❌ Marker lost (model stays)');
+                if (!detachedModel) {
+                    status.textContent = 'Point camera at marker';
+                }
+            });
 
             // Start AR
             async function startAR() {
@@ -134,31 +167,6 @@
                     scene.addEventListener('arReady', () => {
                         status.textContent = 'Point camera at marker';
                     });
-                    
-                    // Handle marker detection
-                    const marker = document.querySelector('[mindar-image-target]');
-                    marker.addEventListener('targetFound', () => {
-                        if (!modelDetached) {
-                            status.textContent = 'Marker detected - detaching model';
-                            
-                            // Small delay to ensure model is positioned by MindAR
-                            setTimeout(() => {
-                                currentModel = detachModel();
-                                if (currentModel) {
-                                    modelDetached = true;
-                                    status.textContent = 'Model detached - use gestures to rotate/scale';
-                                    initGestures();
-                                }
-                            }, 100);
-                        } else {
-                            status.textContent = 'Model already detached';
-                        }
-                    });
-
-                    marker.addEventListener('targetLost', () => {
-                        // Do nothing - model should stay visible
-                        console.log("Marker lost but detached model stays");
-                    });
 
                     arSystem.start();
                     
@@ -168,12 +176,11 @@
                 }
             }
 
-            // Start everything when scene is loaded
-            scene.addEventListener('loaded', function() {
+            // Start when scene is loaded
+            scene.addEventListener('loaded', () => {
                 setTimeout(startAR, 1000);
             });
         });
     </script>
 </body>
 </html>
-
