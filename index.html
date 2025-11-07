@@ -28,28 +28,49 @@
             renderer="colorManagement: true; physicallyCorrectLights: true;"
         >
             <a-assets>
-                <!-- ... (ваши модели остаются без изменений) ... -->
+                <!-- Ваши модели -->
                 <a-asset-item id="model1" src="./models/model1_Lotok_gluhoy50.glb?v=1"></a-asset-item>
+
                 <a-asset-item id="model2" src="./models/model2_Lotok_gluhoy65.glb?v=1"></a-asset-item>
+
                 <a-asset-item id="model3" src="./models/model3_Lotok_gluhoy80.glb?v=1"></a-asset-item>
+
                 <a-asset-item id="model4" src="./models/model4_Lotok_gluhoy100.glb?v=1"></a-asset-item>
+
                 <a-asset-item id="model5" src="./models/model5_Lotok_gluhoy150.glb?v=1"></a-asset-item>
+
                 <a-asset-item id="model6" src="./models/model6_Lotok_perf50.glb?v=1"></a-asset-item>
+
                 <a-asset-item id="model7" src="./models/model7_Lotok_perf65.glb?v=1"></a-asset-item>
+
                 <a-asset-item id="model8" src="./models/model8_Lotok_perf80.glb?v=1"></a-asset-item>
+
                 <a-asset-item id="model9" src="./models/model9_Lotok_perf100.glb?v=1"></a-asset-item>
+
                 <a-asset-item id="model10" src="./models/model10_Lotok_perf150.glb?v=1"></a-asset-item>
+
                 <a-asset-item id="model11" src="./models/model11_lestni_50.glb?v=1"></a-asset-item>
+
                 <a-asset-item id="model12" src="./models/model12_lestni_65.glb?v=1"></a-asset-item>
+
                 <a-asset-item id="model13" src="./models/model13_lestni_80.glb?v=1"></a-asset-item>
+
                 <a-asset-item id="model14" src="./models/model14_lestni_100.glb?v=1"></a-asset-item>
+
                 <a-asset-item id="model15" src="./models/model15_lestni_150.glb?v=1"></a-asset-item>
+
                 <a-asset-item id="model16" src="./models/ani.glb?v=2"></a-asset-item>
+
                 <a-asset-item id="model17" src="./models/strut21.glb?v=1"></a-asset-item>
+
                 <a-asset-item id="model18" src="./models/strut41.glb?v=1"></a-asset-item>
+
                 <a-asset-item id="model19" src="./models/strut82.glb?v=1"></a-asset-item>
+
                 <a-asset-item id="model20" src="./models/lotok_dno3.glb?v=2"></a-asset-item>
+
                 <a-asset-item id="model21" src="./models/merged.glb?v=2"></a-asset-item>
+                <!-- Остальные модели -->
             </a-assets>
 
             <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -57,11 +78,12 @@
             <!-- Lighting -->
             <a-light type="ambient" color="#FFF" intensity="2.5"></a-light>
             <a-light type="directional" color="#FFF" intensity="2" position="2 5 3"></a-light>
-            <a-light type="directional" color="#fff" intensity="1" position="-3 2 -2"></a-light>
-            <a-light type="directional" color="#fff" intensity="1" position="0 3 -4"></a-light>
 
-            <!-- Маркеры (остаются без изменений) -->
-       <a-entity mindar-image-target="targetIndex: 0">
+            <!-- Контейнер для отсоединенных моделей -->
+            <a-entity id="detached-container"></a-entity>
+
+            <!-- Маркеры -->
+         <a-entity mindar-image-target="targetIndex: 0">
 
                 <a-gltf-model src="#model1" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
 
@@ -262,7 +284,6 @@
                 </a-gltf-model>
 
             </a-entity>
-
         </a-scene>
     </div>
     
@@ -272,29 +293,12 @@
         document.addEventListener('DOMContentLoaded', () => {
             const status = document.getElementById('status');
             const scene = document.querySelector('a-scene');
+            const detachedContainer = document.getElementById('detached-container');
 
-            let detachedModels = [];
             let hammerManager = null;
-            let animationMixers = []; // Для хранения микшеров анимации
+            let currentDetachedModel = null;
 
-            // Функция для обновления анимаций на каждом кадре
-            function updateAnimations() {
-                const delta = scene.timeDelta / 1000; // В секундах
-                animationMixers.forEach(mixer => {
-                    if (mixer && typeof mixer.update === 'function') {
-                        mixer.update(delta);
-                    }
-                });
-            }
-
-            // Регистрируем системный компонент для обновления анимаций
-            AFRAME.registerSystem('animation-updater', {
-                tick: function() {
-                    updateAnimations();
-                }
-            });
-
-            // Initialize gesture controls for detached model
+            // Initialize gesture controls
             function initGestures(model) {
                 const container = document.getElementById('ar-container');
 
@@ -345,7 +349,7 @@
                 console.log("🎮 Gesture controls ready");
             }
 
-            // Обработчик для ВСЕХ маркеров
+            // Обработчик для маркеров
             function setupMarkerHandlers() {
                 const markers = document.querySelectorAll('[mindar-image-target]');
 
@@ -354,91 +358,74 @@
                         console.log(`📍 Marker ${index} found`);
                         status.textContent = `Marker ${index} detected`;
 
-                        // Удаляем предыдущую модель
-                        detachedModels.forEach(m => {
-                            if (m && m.parentNode) m.parentNode.removeChild(m);
-                        });
-                        detachedModels = [];
-
-                        // Очищаем старые микшеры
-                        animationMixers = [];
+                        // Удаляем предыдущую отсоединенную модель
+                        if (currentDetachedModel) {
+                            detachedContainer.removeChild(currentDetachedModel);
+                            currentDetachedModel = null;
+                        }
 
                         setTimeout(() => {
                             const originalModel = marker.querySelector('a-gltf-model');
                             if (!originalModel) return;
 
+                            // Получаем мировые координаты маркера
                             const worldPos = new THREE.Vector3();
                             const worldQuat = new THREE.Quaternion();
                             marker.object3D.getWorldPosition(worldPos);
                             marker.object3D.getWorldQuaternion(worldQuat);
 
-                            const detachedModel = document.createElement('a-entity');
-                            const modelSrc = originalModel.getAttribute('src');
-                            const modelScale = { x: 200, y: 200, z: 200 };
-                            const modelRotation = Object.assign({}, originalModel.getAttribute('rotation'));
-
-                            // Сначала устанавливаем только модель и базовые атрибуты
-                            detachedModel.setAttribute('gltf-model', modelSrc);
-                            detachedModel.setAttribute('scale', modelScale);
-                            detachedModel.setAttribute('rotation', modelRotation);
-
-                            // Переносим в мировые координаты
+                            // ПРЯМОЙ ПОДХОД: Клонируем оригинальную модель
+                            const detachedModel = originalModel.cloneNode(true);
+                            
+                            // Устанавливаем мировые координаты
                             detachedModel.object3D.position.copy(worldPos);
                             detachedModel.object3D.quaternion.copy(worldQuat);
-
-                            // Добавляем в сцену ДО загрузки модели
-                            scene.appendChild(detachedModel);
-
-                            // Скрываем оригинал
-                            originalModel.setAttribute('visible', false);
-
-                            // Обработчик загрузки модели для анимации - ПРЯМОЙ ПОДХОД THREE.js
-                            detachedModel.addEventListener('model-loaded', (e) => {
-                                console.log("📦 Model loaded, initializing animation with THREE.js");
-                                
-                                const model = e.detail.model;
-                                const clips = model.animations;
-                                
-                                console.log("🎞 Available animations:", clips ? clips.map(a => a.name) : 'none');
-                                
-                                if (!clips || clips.length === 0) {
-                                    console.warn("❌ No animations found in model");
-                                    return;
+                            detachedModel.setAttribute('scale', '200 200 200');
+                            
+                            // Добавляем в контейнер отсоединенных моделей
+                            detachedContainer.appendChild(detachedModel);
+                            
+                            // Сохраняем ссылку
+                            currentDetachedModel = detachedModel;
+                            
+                            // Скрываем оригинальную модель
+                            originalModel.setAttribute('visible', 'false');
+                            
+                            // Ждем пока модель загрузится и запускаем анимацию
+                            setTimeout(() => {
+                                // Принудительно перезапускаем анимацию
+                                if (detachedModel.components['animation-mixer']) {
+                                    const mixer = detachedModel.components['animation-mixer'];
+                                    // Получаем активное действие
+                                    const actions = mixer.mixer._actions;
+                                    if (actions && actions.length > 0) {
+                                        actions.forEach(action => {
+                                            action.stop();
+                                            action.play();
+                                        });
+                                        console.log("✅ Animation restarted on cloned model");
+                                    }
                                 }
+                            }, 100);
 
-                                // Создаем THREE.js AnimationMixer напрямую
-                                const mixer = new THREE.AnimationMixer(model);
-                                
-                                // Запускаем все доступные анимации
-                                clips.forEach(clip => {
-                                    const action = mixer.clipAction(clip);
-                                    action.setLoop(THREE.LoopRepeat);
-                                    action.play();
-                                    console.log(`🎬 Playing animation: ${clip.name}`);
-                                });
-
-                                // Сохраняем микшер для обновления
-                                animationMixers.push(mixer);
-                                
-                                // Сохраняем ссылку на микшер в модели
-                                detachedModel.userData.animationMixer = mixer;
-                                
-                                console.log("✅ THREE.js animation mixer initialized and playing");
-                            });
-
-                            // Управление
+                            // Инициализируем жесты
                             initGestures(detachedModel);
-
-                            detachedModels.push(detachedModel);
+                            
                             status.textContent = `Model ${index} detached — gestures active`;
+                            console.log(`✅ Model ${index} cloned and detached`);
 
-                            console.log(`✅ Model ${index} detached`);
                         }, 300);
                     });
 
                     marker.addEventListener('targetLost', () => {
                         console.log(`❌ Marker ${index} lost (model persists)`);
                         status.textContent = 'Marker lost — model stays';
+                        
+                        // Показываем оригинальную модель снова (но она скрыта)
+                        const originalModel = marker.querySelector('a-gltf-model');
+                        if (originalModel) {
+                            originalModel.setAttribute('visible', 'false');
+                        }
                     });
                 });
             }
@@ -465,9 +452,6 @@
 
             // Start when scene is loaded
             scene.addEventListener('loaded', () => {
-                // Добавляем системный компонент для обновления анимаций
-                scene.setAttribute('animation-updater', '');
-                
                 setupMarkerHandlers();
                 setTimeout(startAR, 1000);
             });
