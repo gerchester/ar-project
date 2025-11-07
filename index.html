@@ -60,6 +60,7 @@
             <a-light type="directional" color="#fff" intensity="1" position="0 3 -4"></a-light>
 
             <!-- Маркеры -->
+            <!-- ... (все маркеры остаются без изменений) ... -->
             <a-entity mindar-image-target="targetIndex: 0">
                 <a-gltf-model src="#model1" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
             </a-entity>
@@ -271,35 +272,51 @@
                             // Скрываем оригинал
                             originalModel.setAttribute('visible', false);
 
-                            // Обработчик загрузки модели для анимации
+                            // Обработчик загрузки модели для анимации - ИСПРАВЛЕННАЯ ВЕРСИЯ
                             detachedModel.addEventListener('model-loaded', (e) => {
                                 console.log("📦 Model loaded, initializing animation");
                                 
-                                // Отладочная информация о доступных анимациях
-                                console.log("🎞 Available animations:", e.detail.model.animations.map(a => a.name));
+                                const clips = e.detail.model.animations;
+                                console.log("🎞 Available animations:", clips ? clips.map(a => a.name) : 'none');
                                 
-                                // Удаляем старый animation-mixer, если был
-                                if (detachedModel.hasAttribute('animation-mixer')) {
-                                    detachedModel.removeAttribute('animation-mixer');
+                                if (!clips || clips.length === 0) {
+                                    console.warn("❌ No animations found in model");
+                                    return;
                                 }
 
-                                // Ждем немного, чтобы glTF полностью инициализировался
+                                // Небольшая задержка для стабильности в Safari/Android
                                 setTimeout(() => {
-                                    // Создаем новый animation-mixer с правильными параметрами
+                                    // Полностью пересоздаем animation-mixer
+                                    if (detachedModel.hasAttribute('animation-mixer')) {
+                                        detachedModel.removeAttribute('animation-mixer');
+                                    }
+
+                                    // Определяем настройки анимации
+                                    let animationSettings;
                                     if (animAttr) {
-                                        // Используем оригинальные настройки анимации
-                                        detachedModel.setAttribute('animation-mixer', animAttr);
+                                        // Используем оригинальные настройки
+                                        animationSettings = animAttr;
                                     } else {
-                                        // Если анимация не указана, используем первую доступную
-                                        detachedModel.setAttribute('animation-mixer', 'clip: *; loop: repeat');
+                                        // Используем первый доступный клип
+                                        const firstClip = clips[0].name;
+                                        animationSettings = `clip: ${firstClip}; loop: repeat; timeScale: 1`;
                                     }
-                                    console.log("🎬 Animation mixer initialized AFTER model load");
+
+                                    console.log("🎬 Applying animation settings:", animationSettings);
                                     
-                                    // Принудительно обновляем компонент
+                                    // Устанавливаем атрибут
+                                    detachedModel.setAttribute('animation-mixer', animationSettings);
+                                    
+                                    // Принудительно инициализируем и запускаем анимацию
                                     if (detachedModel.components['animation-mixer']) {
-                                        detachedModel.components['animation-mixer'].update({});
+                                        const mixer = detachedModel.components['animation-mixer'];
+                                        mixer.init(); // переинициализация
+                                        mixer.play(); // запуск анимации
+                                        console.log("✅ Animation mixer initialized and played");
+                                    } else {
+                                        console.error("❌ Animation mixer component not found after setAttribute");
                                     }
-                                }, 100);
+                                }, 200);
                             });
 
                             // Управление
