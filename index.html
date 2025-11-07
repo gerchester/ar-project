@@ -256,13 +256,7 @@
                             const modelRotation = Object.assign({}, originalModel.getAttribute('rotation'));
                             const animAttr = originalModel.getAttribute('animation-mixer');
 
-                            // Сначала устанавливаем анимацию, если она есть
-                            if (animAttr) {
-                                console.log("🎭 Setting up animation for detached model");
-                                detachedModel.setAttribute('animation-mixer', animAttr);
-                            }
-
-                            // Затем устанавливаем модель
+                            // Сначала устанавливаем только модель и базовые атрибуты
                             detachedModel.setAttribute('gltf-model', modelSrc);
                             detachedModel.setAttribute('scale', modelScale);
                             detachedModel.setAttribute('rotation', modelRotation);
@@ -271,38 +265,42 @@
                             detachedModel.object3D.position.copy(worldPos);
                             detachedModel.object3D.quaternion.copy(worldQuat);
 
-                            // Обработчик загрузки модели для анимации
-                            detachedModel.addEventListener('model-loaded', () => {
-                                console.log("📦 Model loaded, initializing animation");
-                                
-                                if (animAttr && detachedModel.components['animation-mixer']) {
-                                    const mixer = detachedModel.components['animation-mixer'];
-                                    console.log("🎬 Animation mixer found, playing animation");
-                                    
-                                    // Принудительно останавливаем и перезапускаем анимацию
-                                    mixer.stopAction();
-                                    setTimeout(() => {
-                                        mixer.playAction();
-                                        console.log("✅ Animation started successfully");
-                                    }, 100);
-                                } else if (animAttr) {
-                                    console.log("❌ Animation mixer component not found");
-                                    // Попытка пересоздать компонент
-                                    setTimeout(() => {
-                                        detachedModel.removeAttribute('animation-mixer');
-                                        setTimeout(() => {
-                                            detachedModel.setAttribute('animation-mixer', animAttr);
-                                            console.log("🔄 Animation mixer recreated");
-                                        }, 50);
-                                    }, 100);
-                                }
-                            });
-
-                            // Добавляем в сцену
+                            // Добавляем в сцену ДО загрузки модели
                             scene.appendChild(detachedModel);
 
                             // Скрываем оригинал
                             originalModel.setAttribute('visible', false);
+
+                            // Обработчик загрузки модели для анимации
+                            detachedModel.addEventListener('model-loaded', (e) => {
+                                console.log("📦 Model loaded, initializing animation");
+                                
+                                // Отладочная информация о доступных анимациях
+                                console.log("🎞 Available animations:", e.detail.model.animations.map(a => a.name));
+                                
+                                // Удаляем старый animation-mixer, если был
+                                if (detachedModel.hasAttribute('animation-mixer')) {
+                                    detachedModel.removeAttribute('animation-mixer');
+                                }
+
+                                // Ждем немного, чтобы glTF полностью инициализировался
+                                setTimeout(() => {
+                                    // Создаем новый animation-mixer с правильными параметрами
+                                    if (animAttr) {
+                                        // Используем оригинальные настройки анимации
+                                        detachedModel.setAttribute('animation-mixer', animAttr);
+                                    } else {
+                                        // Если анимация не указана, используем первую доступную
+                                        detachedModel.setAttribute('animation-mixer', 'clip: *; loop: repeat');
+                                    }
+                                    console.log("🎬 Animation mixer initialized AFTER model load");
+                                    
+                                    // Принудительно обновляем компонент
+                                    if (detachedModel.components['animation-mixer']) {
+                                        detachedModel.components['animation-mixer'].update({});
+                                    }
+                                }, 100);
+                            });
 
                             // Управление
                             initGestures(detachedModel);
@@ -310,7 +308,7 @@
                             detachedModels.push(detachedModel);
                             status.textContent = `Model ${index} detached — gestures active`;
 
-                            console.log(`✅ Model ${index} detached and animated`);
+                            console.log(`✅ Model ${index} detached`);
                         }, 300);
                     });
 
