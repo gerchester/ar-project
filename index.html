@@ -346,6 +346,7 @@
     <div class="status" id="status">Point camera at marker</div>
 
     <script>
+       
         document.addEventListener('DOMContentLoaded', () => {
             const status = document.getElementById('status');
             const scene = document.querySelector('a-scene');
@@ -405,44 +406,32 @@
                 console.log("🎮 Gesture controls ready");
             }
 
-            // Нужные утилиты
-            function getModelContainerFromModel(modelEl) {
-                // ищем родителя, который вероятно id="model-container-X"
-                if (!modelEl) return null;
-                // ближайший a-entity родитель
-                let p = modelEl.parentElement;
-                while (p && p.tagName.toLowerCase() !== 'a-entity') {
-                    p = p.parentElement;
-                }
-                return p || modelEl.parentElement; // fallback
+            function detachModel(marker) {
+                console.log('=== DETACH START ===');
+                const container = marker.querySelector('a-entity[id^="model-container"]');
+                if (!container) return console.warn('❌ Model container not found');
+                const model = container.querySelector('a-gltf-model');
+                if (!model) return console.warn('❌ Model not found in container');
+
+                const worldPos = new THREE.Vector3();
+                const worldQuat = new THREE.Quaternion();
+                marker.object3D.getWorldPosition(worldPos);
+                marker.object3D.getWorldQuaternion(worldQuat);
+
+                // Переносим по WebGL, а не по DOM
+                scene.object3D.add(model.object3D);
+                model.object3D.position.copy(worldPos);
+                model.object3D.quaternion.copy(worldQuat);
+                model.object3D.scale.set(50, 50, 50);
+                model.object3D.matrixAutoUpdate = true;
+
+                currentDetachedModel = model;
+                originalMarkerParent = marker;
+                initGestures(model);
+
+                status.textContent = 'Model detached — gestures active';
+                console.log('✅ Model physically detached');
             }
-
-           function detachModel(marker) {
-  console.log('=== DETACH START ===');
-  const container = marker.querySelector('a-entity[id^="model-container"]');
-  if (!container) return console.warn('❌ Model container not found');
-  const model = container.querySelector('a-gltf-model');
-  if (!model) return console.warn('❌ Model not found in container');
-
-  const worldPos = new THREE.Vector3();
-  const worldQuat = new THREE.Quaternion();
-  marker.object3D.getWorldPosition(worldPos);
-  marker.object3D.getWorldQuaternion(worldQuat);
-
-  // Переносим по WebGL, а не по DOM
-  scene.object3D.add(model.object3D);
-  model.object3D.position.copy(worldPos);
-  model.object3D.quaternion.copy(worldQuat);
-  model.object3D.scale.set(50, 50, 50);
-  model.object3D.matrixAutoUpdate = true;
-
-  currentDetachedModel = model;
-  originalMarkerParent = marker;
-  initGestures(model);
-
-  status.textContent = 'Model detached — gestures active';
-  console.log('✅ Model physically detached');
-}
 
             function reattachModel() {
                 if (!currentDetachedModel || !originalMarkerParent) return;
@@ -452,7 +441,7 @@
                 originalMarkerParent.appendChild(currentDetachedModel);
                 // 3) Восстановим локальные трансформации (нулевые)
                 currentDetachedModel.setAttribute('position', '0 0 0');
-                currentDetachedModel.setAttribute('rotation', '180 0 0'); // или '180 0 0' если нужно
+                currentDetachedModel.setAttribute('rotation', '180 0 0');
                 currentDetachedModel.setAttribute('scale', '1 1 1');
 
                 // чистим
@@ -468,8 +457,6 @@
 
                 markers.forEach((marker, index) => {
                     marker.addEventListener('targetFound', () => {
-                        setTimeout(() => detachModel(marker), 200);
-});
                         console.log(`📍 Marker ${index} found`);
                         status.textContent = `Marker ${index} detected`;
 
@@ -494,11 +481,22 @@
                 });
             }
 
-            // Start AR
+            // Start AR - ИСПРАВЛЕННАЯ ВЕРСИЯ
             async function startAR() {
                 try {
-                    status.textContent = 'Starting camera...';
+                    status.textContent = 'Requesting camera permission...';
                     
+                    // ЗАПРАШИВАЕМ РАЗРЕШЕНИЕ НА КАМЕРУ
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { 
+                            facingMode: 'environment' // Используем заднюю камеру на мобильных
+                        } 
+                    });
+                    
+                    // Останавливаем поток, так как MindAR будет использовать свою собственную инициализацию камеры
+                    stream.getTracks().forEach(track => track.stop());
+                    
+                    status.textContent = 'Camera access granted. Starting AR...';
 
                     const arSystem = scene.systems["mindar-image-system"];
 
@@ -506,10 +504,13 @@
                         status.textContent = 'Point camera at marker';
                     });
 
+                    // Запускаем AR систему
                     arSystem.start();
+                    console.log("✅ AR system started");
+                    
                 } catch (err) {
-                    console.error(err);
-                    status.textContent = 'Camera access denied';
+                    console.error('Camera error:', err);
+                    status.textContent = 'Camera access denied. Please allow camera access.';
                 }
             }
 
@@ -529,6 +530,7 @@
     </script>
 </body>
 </html>
+
 
 
 
