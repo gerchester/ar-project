@@ -421,7 +421,7 @@
                 console.log('Markers total:', document.querySelectorAll('[mindar-image-target]').length);
                 console.log('Marker children:', marker.children.length);
                 
-                const model = marker.querySelector('a-gltf-model');
+                const model = marker.querySelector('a-entity[id^="model-container"] a-gltf-model');
                 if (!model) return console.warn('No model to detach');
                 
                 console.log('Found model el:', model);
@@ -509,6 +509,8 @@
 
                 markers.forEach((marker, index) => {
                     marker.addEventListener('targetFound', () => {
+                        setTimeout(() => detachModel(marker), 200);
+});
                         console.log(`📍 Marker ${index} found`);
                         status.textContent = `Marker ${index} detected`;
 
@@ -569,4 +571,5 @@
     </script>
 </body>
 </html>
+
 
