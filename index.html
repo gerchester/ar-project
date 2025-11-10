@@ -417,73 +417,32 @@
                 return p || modelEl.parentElement; // fallback
             }
 
-            function detachModel(marker) {
-                console.log('Markers total:', document.querySelectorAll('[mindar-image-target]').length);
-                console.log('Marker children:', marker.children.length);
-                
-                const model = marker.querySelector('a-entity[id^="model-container"] a-gltf-model');
-                if (!model) return console.warn('No model to detach');
-                
-                console.log('Found model el:', model);
-                console.log('Model parent:', model.parentElement);
+           function detachModel(marker) {
+  console.log('=== DETACH START ===');
+  const container = marker.querySelector('a-entity[id^="model-container"]');
+  if (!container) return console.warn('❌ Model container not found');
+  const model = container.querySelector('a-gltf-model');
+  if (!model) return console.warn('❌ Model not found in container');
 
-                const container = getModelContainerFromModel(model) || model;
-                console.log('Container object3D exists?', !!container.object3D);
-                console.log('Scene object3D?', !!scene.object3D);
-                console.log('Container:', container, 'tagName:', container.tagName, 'id:', container.id);
+  const worldPos = new THREE.Vector3();
+  const worldQuat = new THREE.Quaternion();
+  marker.object3D.getWorldPosition(worldPos);
+  marker.object3D.getWorldQuaternion(worldQuat);
 
-                // 1) Сначала обновляем матрицы и читаем мировую позицию контейнера
-                container.object3D.updateMatrixWorld(true);
-                const worldPos = new THREE.Vector3();
-                const worldQuat = new THREE.Quaternion();
-                container.object3D.getWorldPosition(worldPos);
-                container.object3D.getWorldQuaternion(worldQuat);
+  // Переносим по WebGL, а не по DOM
+  scene.object3D.add(model.object3D);
+  model.object3D.position.copy(worldPos);
+  model.object3D.quaternion.copy(worldQuat);
+  model.object3D.scale.set(50, 50, 50);
+  model.object3D.matrixAutoUpdate = true;
 
-                // 2) Убираем контейнер у его родителя корректно
-                const oldParent = container.parentElement;
-                if (oldParent) {
-                    try {
-                        oldParent.removeChild(container);
-                    } catch (err) {
-                        // на всякий случай — если removeChild бросит, продолжим (но логируем)
-                        console.warn('removeChild failed', err);
-                    }
-                }
+  currentDetachedModel = model;
+  originalMarkerParent = marker;
+  initGestures(model);
 
-                // 3) Добавляем контейнер в сцену
-                scene.appendChild(container);
-
-                // 4) Применяем мировые координаты — теперь контейнер часть сцены, присваиваем значение в world-space
-                container.object3D.position.copy(worldPos);
-                container.object3D.quaternion.copy(worldQuat);
-
-                // 5) Подстраиваем масштаб/пивот при необходимости
-                container.object3D.scale.set(50, 50, 50); // если нужно
-                container.object3D.matrixAutoUpdate = true;
-
-                // 6) Сохраняем оригинального родителя, чтобы вернуть потом
-                currentDetachedModel = container;
-                originalMarkerParent = oldParent && oldParent.closest('[mindar-image-target]') || marker;
-
-                // Перезапускаем анимацию если нужно
-                const animCmp = container.querySelector('a-gltf-model')?.components['animation-mixer'];
-                if (animCmp) {
-                    animCmp.stopAllActions?.();
-                    // Даем время на перезапуск
-                    setTimeout(() => {
-                        if (animCmp.mixer && animCmp.mixer._actions) {
-                            animCmp.mixer._actions.forEach(action => {
-                                action.stop();
-                                action.play();
-                            });
-                        }
-                    }, 100);
-                }
-
-                initGestures(container);
-                status.textContent = 'Model detached — gestures active';
-                console.log('✅ Detached container', container, 'oldParent', oldParent);
-            }
+  status.textContent = 'Model detached — gestures active';
+  console.log('✅ Model physically detached');
+}
 
             function reattachModel() {
                 if (!currentDetachedModel || !originalMarkerParent) return;
@@ -571,5 +530,6 @@
     </script>
 </body>
 </html>
+
 
 
