@@ -498,8 +498,7 @@
             async function startAR() {
                 try {
                     status.textContent = 'Starting camera...';
-                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                    stream.getTracks().forEach(track => track.stop());
+                    
 
                     const arSystem = scene.systems["mindar-image-system"];
 
@@ -530,6 +529,7 @@
     </script>
 </body>
 </html>
+
 
 
 
