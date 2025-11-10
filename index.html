@@ -29,8 +29,8 @@
         >
             <a-assets>
                <a-asset-item id="model1" src="./models/model1_Lotok_gluhoy50.glb?v=1"></a-asset-item>
-
-                <a-asset-item id="model2" src="./models/model2_Lotok_gluhoy65.glb?v=1"></a-asset-item>
+                
+                   <a-asset-item id="model2" src="./models/model2_Lotok_gluhoy65.glb?v=1"></a-asset-item>
 
                 <a-asset-item id="model3" src="./models/model3_Lotok_gluhoy80.glb?v=1"></a-asset-item>
 
@@ -88,8 +88,7 @@
         </a-gltf-model>
     </a-entity>
 </a-entity>
-
-<!-- Target 1 -->
+- Target 1 -->
 <a-entity mindar-image-target="targetIndex: 1">
     <a-entity id="model-container-1" position="0 0 0">
         <a-gltf-model 
@@ -341,7 +340,6 @@
                 </a-gltf-model>
             </a-entity>
                    </a-entity>
-
         </a-scene>
     </div>
     
@@ -407,61 +405,102 @@
                 console.log("🎮 Gesture controls ready");
             }
 
-            // Функция для отсоединения модели
-            function detachModel(marker) {
-                const model = marker.querySelector('a-gltf-model');
-                if (!model) return;
-
-                const worldPos = new THREE.Vector3();
-                const worldQuat = new THREE.Quaternion();
-                marker.object3D.getWorldPosition(worldPos);
-                marker.object3D.getWorldQuaternion(worldQuat);
-
-                // Убираем из маркера
-                marker.removeChild(model);
-                // Добавляем в сцену
-                scene.appendChild(model);
-
-                // Применяем мировые координаты
-                model.object3D.position.copy(worldPos);
-                model.object3D.quaternion.copy(worldQuat);
-                model.object3D.scale.set(50, 50, 50);
-
-                // Включаем matrixAutoUpdate
-                model.object3D.matrixAutoUpdate = true;
-
-                currentDetachedModel = model;
-                originalMarkerParent = marker;
-                initGestures(model);
-
-                status.textContent = `Model detached — gestures active`;
-                console.log("✅ Model physically detached");
+            // Нужные утилиты
+            function getModelContainerFromModel(modelEl) {
+                // ищем родителя, который вероятно id="model-container-X"
+                if (!modelEl) return null;
+                // ближайший a-entity родитель
+                let p = modelEl.parentElement;
+                while (p && p.tagName.toLowerCase() !== 'a-entity') {
+                    p = p.parentElement;
+                }
+                return p || modelEl.parentElement; // fallback
             }
 
-            // Функция для возврата модели к маркеру
-            function reattachModel() {
-                if (currentDetachedModel && originalMarkerParent) {
-                    scene.removeChild(currentDetachedModel);
-                    originalMarkerParent.appendChild(currentDetachedModel);
-                    
-                    // Возвращаем оригинальные настройки
-                    currentDetachedModel.setAttribute('scale', '1 1 1');
-                    currentDetachedModel.setAttribute('position', '0 0 0');
-                    
-                    // Восстанавливаем оригинальное вращение в зависимости от маркера
-                    const markerIndex = Array.from(document.querySelectorAll('[mindar-image-target]')).indexOf(originalMarkerParent);
-                    if (markerIndex >= 10) {
-                        currentDetachedModel.setAttribute('rotation', '0 0 0');
-                    } else {
-                        currentDetachedModel.setAttribute('rotation', '180 0 0');
+            function detachModel(marker) {
+                console.log('Markers total:', document.querySelectorAll('[mindar-image-target]').length);
+                console.log('Marker children:', marker.children.length);
+                
+                const model = marker.querySelector('a-gltf-model');
+                if (!model) return console.warn('No model to detach');
+                
+                console.log('Found model el:', model);
+                console.log('Model parent:', model.parentElement);
+
+                const container = getModelContainerFromModel(model) || model;
+                console.log('Container object3D exists?', !!container.object3D);
+                console.log('Scene object3D?', !!scene.object3D);
+                console.log('Container:', container, 'tagName:', container.tagName, 'id:', container.id);
+
+                // 1) Сначала обновляем матрицы и читаем мировую позицию контейнера
+                container.object3D.updateMatrixWorld(true);
+                const worldPos = new THREE.Vector3();
+                const worldQuat = new THREE.Quaternion();
+                container.object3D.getWorldPosition(worldPos);
+                container.object3D.getWorldQuaternion(worldQuat);
+
+                // 2) Убираем контейнер у его родителя корректно
+                const oldParent = container.parentElement;
+                if (oldParent) {
+                    try {
+                        oldParent.removeChild(container);
+                    } catch (err) {
+                        // на всякий случай — если removeChild бросит, продолжим (но логируем)
+                        console.warn('removeChild failed', err);
                     }
-
-                    currentDetachedModel = null;
-                    originalMarkerParent = null;
-
-                    status.textContent = 'Model reattached to marker';
-                    console.log("✅ Model reattached to marker");
                 }
+
+                // 3) Добавляем контейнер в сцену
+                scene.appendChild(container);
+
+                // 4) Применяем мировые координаты — теперь контейнер часть сцены, присваиваем значение в world-space
+                container.object3D.position.copy(worldPos);
+                container.object3D.quaternion.copy(worldQuat);
+
+                // 5) Подстраиваем масштаб/пивот при необходимости
+                container.object3D.scale.set(50, 50, 50); // если нужно
+                container.object3D.matrixAutoUpdate = true;
+
+                // 6) Сохраняем оригинального родителя, чтобы вернуть потом
+                currentDetachedModel = container;
+                originalMarkerParent = oldParent && oldParent.closest('[mindar-image-target]') || marker;
+
+                // Перезапускаем анимацию если нужно
+                const animCmp = container.querySelector('a-gltf-model')?.components['animation-mixer'];
+                if (animCmp) {
+                    animCmp.stopAllActions?.();
+                    // Даем время на перезапуск
+                    setTimeout(() => {
+                        if (animCmp.mixer && animCmp.mixer._actions) {
+                            animCmp.mixer._actions.forEach(action => {
+                                action.stop();
+                                action.play();
+                            });
+                        }
+                    }, 100);
+                }
+
+                initGestures(container);
+                status.textContent = 'Model detached — gestures active';
+                console.log('✅ Detached container', container, 'oldParent', oldParent);
+            }
+
+            function reattachModel() {
+                if (!currentDetachedModel || !originalMarkerParent) return;
+                // 1) Удаляем из сцены
+                try { scene.removeChild(currentDetachedModel); } catch(e){ console.warn(e); }
+                // 2) Добавляем обратно в оригинальный контейнер-парент (если есть)
+                originalMarkerParent.appendChild(currentDetachedModel);
+                // 3) Восстановим локальные трансформации (нулевые)
+                currentDetachedModel.setAttribute('position', '0 0 0');
+                currentDetachedModel.setAttribute('rotation', '180 0 0'); // или '180 0 0' если нужно
+                currentDetachedModel.setAttribute('scale', '1 1 1');
+
+                // чистим
+                currentDetachedModel = null;
+                originalMarkerParent = null;
+                status.textContent = 'Model reattached to marker';
+                console.log('✅ Reattached');
             }
 
             // Обработчик для маркеров
@@ -530,4 +569,3 @@
     </script>
 </body>
 </html>
-
