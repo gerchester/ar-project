@@ -6,6 +6,7 @@
     <title>WebAR - Persistent Model</title>
     <script src="./aframe.min.js"></script>
     <script src="./mindar-image-aframe.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
     <script src="./hammer.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -28,46 +29,26 @@
             renderer="colorManagement: true; physicallyCorrectLights: true;"
         >
             <a-assets>
-              <a-asset-item id="model1" src="./models/model1_Lotok_gluhoy50.glb?v=1"></a-asset-item>
-
+                <a-asset-item id="model1" src="./models/model1_Lotok_gluhoy50.glb?v=1"></a-asset-item>
                 <a-asset-item id="model2" src="./models/model2_Lotok_gluhoy65.glb?v=1"></a-asset-item>
-
                 <a-asset-item id="model3" src="./models/model3_Lotok_gluhoy80.glb?v=1"></a-asset-item>
-
                 <a-asset-item id="model4" src="./models/model4_Lotok_gluhoy100.glb?v=1"></a-asset-item>
-
                 <a-asset-item id="model5" src="./models/model5_Lotok_gluhoy150.glb?v=1"></a-asset-item>
-
                 <a-asset-item id="model6" src="./models/model6_Lotok_perf50.glb?v=1"></a-asset-item>
-
                 <a-asset-item id="model7" src="./models/model7_Lotok_perf65.glb?v=1"></a-asset-item>
-
                 <a-asset-item id="model8" src="./models/model8_Lotok_perf80.glb?v=1"></a-asset-item>
-
                 <a-asset-item id="model9" src="./models/model9_Lotok_perf100.glb?v=1"></a-asset-item>
-
                 <a-asset-item id="model10" src="./models/model10_Lotok_perf150.glb?v=1"></a-asset-item>
-
                 <a-asset-item id="model11" src="./models/model11_lestni_50.glb?v=1"></a-asset-item>
-
                 <a-asset-item id="model12" src="./models/model12_lestni_65.glb?v=1"></a-asset-item>
-
                 <a-asset-item id="model13" src="./models/model13_lestni_80.glb?v=1"></a-asset-item>
-
                 <a-asset-item id="model14" src="./models/model14_lestni_100.glb?v=1"></a-asset-item>
-
                 <a-asset-item id="model15" src="./models/model15_lestni_150.glb?v=1"></a-asset-item>
-
                 <a-asset-item id="model16" src="./models/ani.glb?v=2"></a-asset-item>
-
                 <a-asset-item id="model17" src="./models/strut21.glb?v=1"></a-asset-item>
-
                 <a-asset-item id="model18" src="./models/strut41.glb?v=1"></a-asset-item>
-
                 <a-asset-item id="model19" src="./models/strut82.glb?v=1"></a-asset-item>
-
                 <a-asset-item id="model20" src="./models/lotok_dno3.glb?v=2"></a-asset-item>
-
                 <a-asset-item id="model21" src="./models/merged.glb?v=2"></a-asset-item>
             </a-assets>
 
@@ -76,202 +57,69 @@
             <!-- Lighting -->
             <a-light type="ambient" color="#FFF" intensity="2.5"></a-light>
             <a-light type="directional" color="#FFF" intensity="2" position="2 5 3"></a-light>
+            <a-light type="directional" color="#fff" intensity="1" position="-3 2 -2"></a-light>
+            <a-light type="directional" color="#fff" intensity="1" position="0 3 -4"></a-light>
 
-            <!-- Маркеры с ПРАВИЛЬНОЙ СТРУКТУРОЙ -->
-           
+            <!-- Маркеры -->
+            <a-entity mindar-image-target="targetIndex: 0">
+                <a-gltf-model src="#model1" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
+            </a-entity>
 
-        <a-entity mindar-image-target="targetIndex: 0">
-    <a-entity id="model-container-0" position="0 0 0">
-        <a-gltf-model 
-            src="#model1" 
-            position="0 0 0" 
-            scale="1.0 1.0 1.0" 
-            rotation="180 0 0"
-            animation-mixer="clip: CombinedAction; loop: repeat; clampWhenFinished: true; timeScale: 1">
-        </a-gltf-model>
-    </a-entity>
-</a-entity>
+            <a-entity mindar-image-target="targetIndex: 1">
+                <a-gltf-model src="#model2" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
+            </a-entity>
 
-<!-- Target 1 -->
-<a-entity mindar-image-target="targetIndex: 1">
-    <a-entity id="model-container-1" position="0 0 0">
-        <a-gltf-model 
-            src="#model2" 
-            position="0 0 0" 
-            scale="1.0 1.0 1.0" 
-            rotation="180 0 0"
-            animation-mixer="clip: CombinedAction; loop: repeat; clampWhenFinished: true; timeScale: 1">
-        </a-gltf-model>
-    </a-entity>
-</a-entity>
+            <a-entity mindar-image-target="targetIndex: 2">
+                <a-gltf-model src="#model3" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
+            </a-entity>
 
-<!-- Target 2 -->
-<a-entity mindar-image-target="targetIndex: 2">
-    <a-entity id="model-container-2" position="0 0 0">
-        <a-gltf-model 
-            src="#model3" 
-            position="0 0 0" 
-            scale="1.0 1.0 1.0" 
-            rotation="180 0 0"
-            animation-mixer="clip: CombinedAction; loop: repeat; clampWhenFinished: true; timeScale: 1">
-        </a-gltf-model>
-    </a-entity>
-</a-entity>
+            <a-entity mindar-image-target="targetIndex: 3">
+                <a-gltf-model src="#model4" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
+            </a-entity>
 
-<!-- Target 3 -->
-<a-entity mindar-image-target="targetIndex: 3">
-    <a-entity id="model-container-3" position="0 0 0">
-        <a-gltf-model 
-            src="#model4" 
-            position="0 0 0" 
-            scale="1.0 1.0 1.0" 
-            rotation="180 0 0"
-            animation-mixer="clip: CombinedAction; loop: repeat; clampWhenFinished: true; timeScale: 1">
-        </a-gltf-model>
-    </a-entity>
-</a-entity>
+            <a-entity mindar-image-target="targetIndex: 4">
+                <a-gltf-model src="#model5" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
+            </a-entity>
 
-<!-- Target 4 -->
-<a-entity mindar-image-target="targetIndex: 4">
-    <a-entity id="model-container-4" position="0 0 0">
-        <a-gltf-model 
-            src="#model5" 
-            position="0 0 0" 
-            scale="1.0 1.0 1.0" 
-            rotation="180 0 0"
-            animation-mixer="clip: CombinedAction; loop: repeat; clampWhenFinished: true; timeScale: 1">
-        </a-gltf-model>
-    </a-entity>
-</a-entity>
+            <a-entity mindar-image-target="targetIndex: 5">
+                <a-gltf-model src="#model6" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
+            </a-entity>
 
-<!-- Target 5 -->
-<a-entity mindar-image-target="targetIndex: 5">
-    <a-entity id="model-container-5" position="0 0 0">
-        <a-gltf-model 
-            src="#model6" 
-            position="0 0 0" 
-            scale="1.0 1.0 1.0" 
-            rotation="180 0 0"
-            animation-mixer="clip: CombinedAction; loop: repeat; clampWhenFinished: true; timeScale: 1">
-        </a-gltf-model>
-    </a-entity>
-</a-entity>
+            <a-entity mindar-image-target="targetIndex: 6">
+                <a-gltf-model src="#model7" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
+            </a-entity>
 
-<!-- Target 6 -->
-<a-entity mindar-image-target="targetIndex: 6">
-    <a-entity id="model-container-6" position="0 0 0">
-        <a-gltf-model 
-            src="#model7" 
-            position="0 0 0" 
-            scale="1.0 1.0 1.0" 
-            rotation="180 0 0"
-            animation-mixer="clip: CombinedAction; loop: repeat; clampWhenFinished: true; timeScale: 1">
-        </a-gltf-model>
-    </a-entity>
-</a-entity>
+            <a-entity mindar-image-target="targetIndex: 7">
+                <a-gltf-model src="#model8" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
+            </a-entity>
 
-<!-- Target 7 -->
-<a-entity mindar-image-target="targetIndex: 7">
-    <a-entity id="model-container-7" position="0 0 0">
-        <a-gltf-model 
-            src="#model8" 
-            position="0 0 0" 
-            scale="1.0 1.0 1.0" 
-            rotation="180 0 0"
-            animation-mixer="clip: CombinedAction; loop: repeat; clampWhenFinished: true; timeScale: 1">
-        </a-gltf-model>
-    </a-entity>
-</a-entity>
+            <a-entity mindar-image-target="targetIndex: 8">
+                <a-gltf-model src="#model9" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
+            </a-entity>
 
-<!-- Target 8 -->
-<a-entity mindar-image-target="targetIndex: 8">
-    <a-entity id="model-container-8" position="0 0 0">
-        <a-gltf-model 
-            src="#model9" 
-            position="0 0 0" 
-            scale="1.0 1.0 1.0" 
-            rotation="180 0 0"
-            animation-mixer="clip: CombinedAction; loop: repeat; clampWhenFinished: true; timeScale: 1">
-        </a-gltf-model>
-    </a-entity>
-</a-entity>
+            <a-entity mindar-image-target="targetIndex: 9">
+                <a-gltf-model src="#model10" position="0 0 0" scale="1.0 1.0 1.0" rotation="180 0 0"></a-gltf-model>
+            </a-entity>
+            
+            <a-entity mindar-image-target="targetIndex: 10">
+                <a-gltf-model src="#model11" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
+            </a-entity>
 
-<!-- Target 9 -->
-<a-entity mindar-image-target="targetIndex: 9">
-    <a-entity id="model-container-9" position="0 0 0">
-        <a-gltf-model 
-            src="#model10" 
-            position="0 0 0" 
-            scale="1.0 1.0 1.0" 
-            rotation="180 0 0"
-            animation-mixer="clip: CombinedAction; loop: repeat; clampWhenFinished: true; timeScale: 1">
-        </a-gltf-model>
-    </a-entity>
-</a-entity>
+            <a-entity mindar-image-target="targetIndex: 11">
+                <a-gltf-model src="#model12" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
+            </a-entity>
 
-<!-- Target 10 -->
-<a-entity mindar-image-target="targetIndex: 10">
-    <a-entity id="model-container-10" position="0 0 0">
-        <a-gltf-model 
-            src="#model11" 
-            position="0 0 0" 
-            scale="1.0 1.0 1.0" 
-            rotation="180 0 0"
-            animation-mixer="clip: CombinedAction; loop: repeat; clampWhenFinished: true; timeScale: 1">
-        </a-gltf-model>
-    </a-entity>
-</a-entity>
+            <a-entity mindar-image-target="targetIndex: 12">
+                <a-gltf-model src="#model13" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
+            </a-entity>
 
-<!-- Target 11 -->
-<a-entity mindar-image-target="targetIndex: 11">
-    <a-entity id="model-container-11" position="0 0 0">
-        <a-gltf-model 
-            src="#model12" 
-            position="0 0 0" 
-            scale="1.0 1.0 1.0" 
-            rotation="180 0 0"
-            animation-mixer="clip: CombinedAction; loop: repeat; clampWhenFinished: true; timeScale: 1">
-        </a-gltf-model>
-    </a-entity>
-</a-entity>
+            <a-entity mindar-image-target="targetIndex: 13">
+                <a-gltf-model src="#model14" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
+            </a-entity>
 
-<!-- Target 12 -->
-<a-entity mindar-image-target="targetIndex: 12">
-    <a-entity id="model-container-12" position="0 0 0">
-        <a-gltf-model 
-            src="#model13" 
-            position="0 0 0" 
-            scale="1.0 1.0 1.0" 
-            rotation="180 0 0"
-            animation-mixer="clip: CombinedAction; loop: repeat; clampWhenFinished: true; timeScale: 1">
-        </a-gltf-model>
-    </a-entity>
-</a-entity>
-
-<!-- Target 13 -->
-<a-entity mindar-image-target="targetIndex: 13">
-    <a-entity id="model-container-13" position="0 0 0">
-        <a-gltf-model 
-            src="#model14" 
-            position="0 0 0" 
-            scale="1.0 1.0 1.0" 
-            rotation="180 0 0"
-            animation-mixer="clip: CombinedAction; loop: repeat; clampWhenFinished: true; timeScale: 1">
-        </a-gltf-model>
-    </a-entity>
-</a-entity>
-
-<!-- Target 14 -->
-<a-entity mindar-image-target="targetIndex: 14">
-    <a-entity id="model-container-14" position="0 0 0">
-        <a-gltf-model 
-            src="#model15" 
-            position="0 0 0" 
-            scale="1.0 1.0 1.0" 
-            rotation="180 0 0"
-            animation-mixer="clip: CombinedAction; loop: repeat; clampWhenFinished: true; timeScale: 1">
-        </a-gltf-model>
-    </a-entity>
+            <a-entity mindar-image-target="targetIndex: 14">
+                <a-gltf-model src="#model15" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
+            </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 15">
                 <a-gltf-model 
@@ -279,38 +127,20 @@
                     position="0 0 0" 
                     scale="1.0 1.0 1.0" 
                     rotation="180 0 0"
-                    animation-mixer="clip: CombinedAction; loop: repeat">
+                   animation-mixer="loop: repeat">
                 </a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 16">
-                <a-gltf-model 
-                    src="#model17" 
-                    position="0 0 0" 
-                    scale="1.0 1.0 1.0" 
-                    rotation="0 0 0"
-                    animation-mixer="clip: CombinedAction; loop: repeat">
-                </a-gltf-model>
+                <a-gltf-model src="#model17" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 17">
-                <a-gltf-model 
-                    src="#model18" 
-                    position="0 0 0" 
-                    scale="1.0 1.0 1.0" 
-                    rotation="0 0 0"
-                    animation-mixer="clip: CombinedAction; loop: repeat">
-                </a-gltf-model>
+                <a-gltf-model src="#model18" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 18">
-                <a-gltf-model 
-                    src="#model19" 
-                    position="0 0 0" 
-                    scale="1.0 1.0 1.0" 
-                    rotation="0 0 0"
-                    animation-mixer="clip: CombinedAction; loop: repeat">
-                </a-gltf-model>
+                <a-gltf-model src="#model19" position="0 0 0" scale="1.0 1.0 1.0" rotation="0 0 0"></a-gltf-model>
             </a-entity>
 
             <a-entity mindar-image-target="targetIndex: 19">
@@ -319,7 +149,7 @@
                     position="0 0 0" 
                     scale="1.0 1.0 1.0" 
                     rotation="0 0 0"
-                    animation-mixer="clip: CombinedAction; loop: repeat">
+                    animation-mixer="loop: repeat">
                 </a-gltf-model>
             </a-entity>
 
@@ -329,7 +159,7 @@
                     position="0 0 0" 
                     scale="1.0 1.0 1.0" 
                     rotation="0 0 0"
-                    animation-mixer="clip: CombinedAction; loop: repeat">
+               animation-mixer="loop: repeat">
                 </a-gltf-model>
             </a-entity>
 
@@ -338,176 +168,160 @@
     
     <div class="status" id="status">Point camera at marker</div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const status = document.getElementById('status');
-            const scene = document.querySelector('a-scene');
+   <script>
+document.addEventListener('DOMContentLoaded', () => {
+  const status = document.getElementById('status');
+  const scene = document.querySelector('a-scene');
 
-            let hammerManager = null;
-            let currentDetachedModel = null;
-            let originalMarkerParent = null;
+  let detachedModels = [];
+  let hammerManager = null;
 
-            // Initialize gesture controls
-            function initGestures(model) {
-                const container = document.getElementById('ar-container');
+  function initGestures(model) {
+    const container = document.getElementById('ar-container');
 
-                if (hammerManager) hammerManager.destroy();
-                hammerManager = new Hammer.Manager(container);
+    if (hammerManager) hammerManager.destroy();
+    hammerManager = new Hammer.Manager(container);
 
-                const pan = new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, pointers: 1 });
-                const pinch = new Hammer.Pinch();
-                const twoFingerPan = new Hammer.Pan({ event: 'twofingerpan', pointers: 2, threshold: 0 });
+    const pan = new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, pointers: 1 });
+    const pinch = new Hammer.Pinch();
+    const twoFingerPan = new Hammer.Pan({ event: 'twofingerpan', pointers: 2, threshold: 0 });
 
-                hammerManager.add([pan, pinch, twoFingerPan]);
-                pinch.recognizeWith(twoFingerPan);
-                twoFingerPan.recognizeWith(pinch);
+    hammerManager.add([pan, pinch, twoFingerPan]);
+    pinch.recognizeWith(twoFingerPan);
+    twoFingerPan.recognizeWith(pinch);
 
-                let initialScale = 1;
+    let initialScale = 1;
 
-                hammerManager.on('pan', (e) => {
-                    const rotation = model.getAttribute('rotation');
-                    model.setAttribute('rotation', {
-                        x: rotation.x + e.deltaY * 0.05,
-                        y: rotation.y + e.deltaX * 0.05,
-                        z: rotation.z,
-                    });
-                });
+    hammerManager.on('pan', (e) => {
+      const rotation = model.getAttribute('rotation');
+      model.setAttribute('rotation', {
+        x: rotation.x + e.deltaY * 0.05,
+        y: rotation.y + e.deltaX * 0.05,
+        z: rotation.z,
+      });
+    });
 
-                hammerManager.on('pinchstart', (e) => (initialScale = e.scale));
+    hammerManager.on('pinchstart', (e) => (initialScale = e.scale));
 
-                hammerManager.on('pinchmove', (e) => {
-                    const scale = model.getAttribute('scale');
-                    const factor = e.scale / initialScale;
-                    model.setAttribute('scale', {
-                        x: scale.x * factor,
-                        y: scale.y * factor,
-                        z: scale.z * factor,
-                    });
-                    initialScale = e.scale;
-                });
+    hammerManager.on('pinchmove', (e) => {
+      const scale = model.getAttribute('scale');
+      const factor = e.scale / initialScale;
+      model.setAttribute('scale', {
+        x: scale.x * factor,
+        y: scale.y * factor,
+        z: scale.z * factor,
+      });
+      initialScale = e.scale;
+    });
 
-                hammerManager.on('twofingerpan', (e) => {
-                    const pos = model.getAttribute('position');
-                    model.setAttribute('position', {
-                        x: pos.x + e.deltaX / 50,
-                        y: pos.y - e.deltaY / 50,
-                        z: pos.z,
-                    });
-                });
+    hammerManager.on('twofingerpan', (e) => {
+      const pos = model.getAttribute('position');
+      model.setAttribute('position', {
+        x: pos.x + e.deltaX / 20,
+        y: pos.y - e.deltaY / 20,
+        z: pos.z,
+      });
+    });
 
-                console.log("🎮 Gesture controls ready");
-            }
+    console.log("🎮 Gesture controls ready");
+  }
 
-            // Обработчик для маркеров - ПРОСТОЙ И РАБОЧИЙ ПОДХОД
-            function setupMarkerHandlers() {
-                const markers = document.querySelectorAll('[mindar-image-target]');
+  function setupMarkerHandlers() {
+    const markers = document.querySelectorAll('[mindar-image-target]');
 
-                markers.forEach((marker, index) => {
-                    marker.addEventListener('targetFound', () => {
-                        console.log(`📍 Marker ${index} found`);
-                        status.textContent = `Marker ${index} detected`;
+    markers.forEach((marker, index) => {
+      marker.addEventListener('targetFound', () => {
+        console.log(`📍 Marker ${index} found`);
+        status.textContent = `Marker ${index} detected`; // 🔧 исправлены кавычки
 
-                        // Если уже есть отсоединенная модель, игнорируем новый маркер
-                        if (currentDetachedModel) return;
-
-                        setTimeout(() => {
-                            const model = marker.querySelector('a-gltf-model');
-                            if (!model) return;
-
-                            console.log(`🎯 Detaching model ${index} logically`);
-
-                            // Получаем мировые координаты
-                            const worldPos = new THREE.Vector3();
-                            const worldQuat = new THREE.Quaternion();
-                            marker.object3D.getWorldPosition(worldPos);
-                            marker.object3D.getWorldQuaternion(worldQuat);
-
-                            // 1. Увеличиваем модель
-                            model.setAttribute('scale', '50 50 50');
-                            
-                            // 2. Отключаем автоматическое обновление позиции от маркера
-                            model.object3D.matrixAutoUpdate = true;
-                            
-                            // 3. Устанавливаем мировые координаты
-                            model.object3D.position.copy(worldPos);
-                            model.object3D.quaternion.copy(worldQuat);
-                            
-                            // 4. Сохраняем ссылки
-                            currentDetachedModel = model;
-                            originalMarkerParent = marker;
-                            
-                            // 5. Инициализируем жесты
-                            initGestures(model);
-                            
-                            status.textContent = `Model ${index} detached — gestures active`;
-                            console.log(`✅ Model ${index} logically detached`);
-
-                        }, 300);
-                    });
-
-                    marker.addEventListener('targetLost', () => {
-                        console.log(`❌ Marker ${index} lost`);
-                        
-                        // Если это маркер с отсоединенной моделью
-                        if (marker === originalMarkerParent && currentDetachedModel) {
-                            status.textContent = 'Marker lost — model stays in place';
-                        } else {
-                            status.textContent = 'Marker lost';
-                        }
-                    });
-                });
-            }
-
-            // Функция для возврата модели к маркеру
-            function reattachModel() {
-                if (currentDetachedModel && originalMarkerParent) {
-                    // Возвращаем оригинальный масштаб
-                    currentDetachedModel.setAttribute('scale', '1.0 1.0 1.0');
-                    // Возвращаем позицию к маркеру
-                    currentDetachedModel.setAttribute('position', '0 0 0');
-                    // Включаем обратно привязку к маркеру
-                    currentDetachedModel.object3D.matrixAutoUpdate = false;
-                    
-                    currentDetachedModel = null;
-                    originalMarkerParent = null;
-                    console.log("✅ Model reattached to marker");
-                }
-            }
-
-            // Start AR
-            async function startAR() {
-                try {
-                    status.textContent = 'Starting camera...';
-                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                    stream.getTracks().forEach(track => track.stop());
-
-                    const arSystem = scene.systems["mindar-image-system"];
-
-                    scene.addEventListener('arReady', () => {
-                        status.textContent = 'Point camera at marker';
-                    });
-
-                    arSystem.start();
-                } catch (err) {
-                    console.error(err);
-                    status.textContent = 'Camera access denied';
-                }
-            }
-
-            // Start when scene is loaded
-            scene.addEventListener('loaded', () => {
-                setupMarkerHandlers();
-                setTimeout(startAR, 1000);
-            });
-
-            // Добавляем кнопку для возврата модели (опционально)
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'r' || e.key === 'R') {
-                    reattachModel();
-                    status.textContent = 'Model reattached to marker (press R)';
-                }
-            });
+        // Удаляем предыдущую модель
+        detachedModels.forEach(m => {
+          if (m && m.parentNode) m.parentNode.removeChild(m);
         });
-    </script>
+        detachedModels = [];
+
+        setTimeout(() => {
+          const originalModel = marker.querySelector('a-gltf-model');
+          if (!originalModel) return;
+
+          const worldPos = new THREE.Vector3();
+          const worldQuat = new THREE.Quaternion();
+          marker.object3D.getWorldPosition(worldPos);
+          marker.object3D.getWorldQuaternion(worldQuat);
+
+          const detachedModel = document.createElement('a-entity');
+          const modelSrc = originalModel.getAttribute('src');
+          const modelScale = { x: 200, y: 200, z: 200 };
+          const modelRotation = Object.assign({}, originalModel.getAttribute('rotation'));
+          const animAttr = originalModel.getAttribute('animation-mixer');
+
+          detachedModel.setAttribute('gltf-model', modelSrc);
+          detachedModel.setAttribute('scale', modelScale);
+          detachedModel.setAttribute('rotation', modelRotation);
+
+          // Переносим в мировые координаты
+          detachedModel.object3D.position.copy(worldPos);
+          detachedModel.object3D.quaternion.copy(worldQuat);
+
+          // Подключаем анимацию (если была)
+          if (animAttr) {
+            detachedModel.setAttribute('animation-mixer', animAttr);
+            // Принудительно пересоздаём mixer
+            detachedModel.addEventListener('model-loaded', () => {
+              if (detachedModel.components['animation-mixer']) {
+                detachedModel.components['animation-mixer'].stopAction();
+                detachedModel.components['animation-mixer'].playAction();
+              }
+            });
+          }
+
+          // Добавляем в сцену
+          scene.appendChild(detachedModel);
+
+          // Скрываем оригинал
+          originalModel.setAttribute('visible', false);
+
+          // Управление
+          initGestures(detachedModel);
+
+          detachedModels.push(detachedModel); // 🔧 используем push вместо индекса
+          status.textContent = `Model ${index} detached — gestures active`; // 🔧 исправлены кавычки
+
+          console.log(`✅ Model ${index} detached and animated`);
+        }, 300);
+      });
+
+      marker.addEventListener('targetLost', () => {
+        console.log(`❌ Marker ${index} lost (model persists)`);
+        status.textContent = 'Marker lost — model stays';
+      });
+    });
+  }
+
+  async function startAR() {
+    try {
+      status.textContent = 'Starting camera...';
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      stream.getTracks().forEach(track => track.stop());
+
+      const arSystem = scene.systems["mindar-image-system"];
+
+      scene.addEventListener('arReady', () => {
+        status.textContent = 'Point camera at marker';
+      });
+
+      arSystem.start();
+    } catch (err) {
+      console.error(err);
+      status.textContent = 'Camera access denied';
+    }
+  }
+
+  scene.addEventListener('loaded', () => {
+    setupMarkerHandlers();
+    setTimeout(startAR, 1000);
+  });
+});
+</script>
 </body>
 </html>
