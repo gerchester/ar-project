@@ -448,9 +448,9 @@ function detachModel(marker) {
   performDetach(marker, container, gltf);
 }
 
-function performDetach(marker, container, gltf) {
+async function performDetach(marker, container, gltfEl) {
   try {
-    // 1) Взять мировые трансформы контейнера
+    // 1) Получаем мировые трансформации
     container.object3D.updateMatrixWorld(true);
     const worldPos = new THREE.Vector3();
     const worldQuat = new THREE.Quaternion();
@@ -459,36 +459,64 @@ function performDetach(marker, container, gltf) {
     container.object3D.getWorldQuaternion(worldQuat);
     container.object3D.getWorldScale(worldScale);
 
-    // 2) Сохраняем в object3D.userData (тут безопасно)
-    container.object3D.userData = container.object3D.userData || {};
-    container.object3D.userData.originalScale = worldScale.clone();
-    container.object3D.userData.originalParent = container.parentElement;
-
-    // 3) Переносим DOM-элемент контейнера в сцену (A-Frame корректно привяжет object3D)
-    if (container.parentElement) {
-      try { container.parentElement.removeChild(container); } catch(e){ /*ignore*/ }
+    // 2) Получаем настройки из оригинальной модели
+    const src = gltfEl.getAttribute('src');
+    const originalAnimAttr = gltfEl.getAttribute('animation-mixer');
+    
+    if (!src) {
+      console.warn('❌ Не найден src у a-gltf-model');
+      return;
     }
-    scene.appendChild(container);
 
-    // 4) Применяем мировые трансформы к контейнеру (теперь он уже в сцене)
-    container.object3D.position.copy(worldPos);
-    container.object3D.quaternion.copy(worldQuat);
-    // временно масштабируем (подстраивай под свою сцену)
-    container.object3D.scale.set(50, 50, 50);
-    container.object3D.matrixAutoUpdate = true;
+    // 3) Скрываем оригинальную модель
+    gltfEl.setAttribute('visible', 'false');
 
-    // 5) Сохраняем для управления
-    currentDetachedModel = container;
-    originalMarkerParent = marker;
+    // 4) Создаём новую сущность
+    const detached = document.createElement('a-entity');
+    detached.setAttribute('gltf-model', src);
+    
+    // Используем оригинальные настройки анимации
+    if (originalAnimAttr) {
+      detached.setAttribute('animation-mixer', originalAnimAttr);
+    } else {
+      detached.setAttribute('animation-mixer', 'clip: *; loop: repeat');
+    }
 
-    // 6) Инициализируем жесты для контейнера
-    initGestures(container);
+    scene.appendChild(detached);
 
-    // 7) Перезапускаем анимацию, если она есть
-    restartAnimation(gltf);
+    // Обработчик успешной загрузки
+    const onModelLoaded = (ev) => {
+      detached.removeEventListener('model-loaded', onModelLoaded);
+      
+      // Устанавливаем трансформации
+      detached.object3D.position.copy(worldPos);
+      detached.object3D.quaternion.copy(worldQuat);
+      detached.object3D.scale.set(50, 50, 50);
+      detached.object3D.matrixAutoUpdate = true;
 
-    status.textContent = 'Model detached — gestures active';
-    console.log('✅ Container detached successfully:', container);
+      // Сохраняем ссылки
+      currentDetachedModel = detached;
+      originalMarkerParent = marker;
+      
+      // Инициализируем жесты
+      initGestures(detached);
+
+      console.log('✅ Detached entity created successfully');
+      status.textContent = 'Model detached — gestures active';
+
+      // Анимация должна работать автоматически через animation-mixer
+    };
+
+    // Обработчик ошибки
+    const onModelError = (err) => {
+      detached.removeEventListener('model-error', onModelError);
+      console.error('❌ Detached model load error', err);
+      scene.removeChild(detached);
+    };
+
+    detached.addEventListener('model-loaded', onModelLoaded);
+    detached.addEventListener('model-error', onModelError);
+
   } catch (err) {
     console.error('❌ performDetach error:', err);
   } finally {
@@ -524,36 +552,24 @@ function restartAnimation(gltf) {
 
 function reattachModel() {
   if (!currentDetachedModel || !originalMarkerParent) {
-    console.
-warn('❌ Nothing to reattach');
+    console.warn('❌ Nothing to reattach');
     return;
   }
 
   try {
-    // Если контейнер сейчас в DOM сцены — удалим его
+    // Удаляем detached entity
     if (currentDetachedModel.parentElement === scene) {
-      try { scene.removeChild(currentDetachedModel); } catch(e){ /* ignore */ }
+      scene.removeChild(currentDetachedModel);
     }
 
-    // Вернём контейнер к оригинальному маркеру (DOM append)
-    originalMarkerParent.appendChild(currentDetachedModel);
-
-    // Восстановим локальные трансформы
-    currentDetachedModel.setAttribute('position', '0 0 0');
-    // Если у тебя исходное вращение было 180 — восстанови; иначе 0
-    currentDetachedModel.setAttribute('rotation', '180 0 0');
-
-    // Восстановим масштаб из object3D.userData если есть
-    if (currentDetachedModel.object3D && currentDetachedModel.object3D.userData && currentDetachedModel.object3D.userData.originalScale) {
-      currentDetachedModel.object3D.scale.copy(currentDetachedModel.object3D.userData.originalScale);
-    } else {
-      currentDetachedModel.setAttribute('scale', '1 1 1');
+    // Показываем оригинальную модель
+    const originalGltf = originalMarkerParent.querySelector('a-gltf-model');
+    if (originalGltf) {
+      originalGltf.setAttribute('visible', 'true');
     }
-
-    // Отключаем matrixAutoUpdate — пусть MindAR снова управляет
-    currentDetachedModel.object3D.matrixAutoUpdate = false;
 
     console.log('✅ Model reattached successfully');
+    
   } catch (error) {
     console.error('❌ Error during reattach:', error);
   } finally {
@@ -641,6 +657,7 @@ warn('❌ Nothing to reattach');
     </script>
 </body>
 </html>
+
 
 
 
