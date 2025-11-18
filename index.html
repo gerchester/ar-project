@@ -176,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let detachedModels = [];
   let hammerManager = null;
 
-  function initGestures(model) {
+ function initGestures(model) {
   const container = document.getElementById('ar-container');
 
   if (hammerManager) hammerManager.destroy();
@@ -185,48 +185,45 @@ document.addEventListener('DOMContentLoaded', () => {
   const pan = new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, pointers: 1 });
   const pinch = new Hammer.Pinch();
   const twoFingerPan = new Hammer.Pan({ event: 'twofingerpan', pointers: 2, threshold: 0 });
-  const rotate = new Hammer.Rotate(); // ← ADD THIS LINE
+  const rotate = new Hammer.Rotate();
 
-  hammerManager.add([pan, pinch, twoFingerPan, rotate]); // ← ADD rotate HERE
-  pinch.recognizeWith([twoFingerPan, rotate]); // ← ADD rotate HERE
+  hammerManager.add([pan, pinch, twoFingerPan, rotate]);
+  pinch.recognizeWith([twoFingerPan, rotate]);
+  twoFingerPan.recognizeWith(pinch);
 
-    twoFingerPan.recognizeWith(pinch);
+  let initialScale = 1;
 
-    let initialScale = 1;
+  // CHANGED: Use object3D for local rotation
+  hammerManager.on('pan', (e) => {
+    const object3D = model.object3D;
+    object3D.rotateY(e.deltaX * 0.001);
+    object3D.rotateX(-e.deltaY * 0.001);
+  });
 
-    hammerManager.on('pan', (e) => {
-      const rotation = model.getAttribute('rotation');
-      model.setAttribute('rotation', {
-        x: rotation.x + e.deltaY * 0.02,
-        y: rotation.y + e.deltaX * 0.02,
-        z: rotation.z,
-      });
+  hammerManager.on('pinchstart', (e) => (initialScale = e.scale));
+
+  hammerManager.on('pinchmove', (e) => {
+    const scale = model.getAttribute('scale');
+    const factor = e.scale / initialScale;
+    model.setAttribute('scale', {
+      x: scale.x * factor,
+      y: scale.y * factor,
+      z: scale.z * factor,
     });
+    initialScale = e.scale;
+  });
 
-    hammerManager.on('pinchstart', (e) => (initialScale = e.scale));
-
-    hammerManager.on('pinchmove', (e) => {
-      const scale = model.getAttribute('scale');
-      const factor = e.scale / initialScale;
-      model.setAttribute('scale', {
-        x: scale.x * factor,
-        y: scale.y * factor,
-        z: scale.z * factor,
-      });
-      initialScale = e.scale;
+  hammerManager.on('twofingerpan', (e) => {
+    const pos = model.getAttribute('position');
+    model.setAttribute('position', {
+      x: pos.x + e.deltaX / 20,
+      y: pos.y - e.deltaY / 20,
+      z: pos.z,
     });
+  });
 
-    hammerManager.on('twofingerpan', (e) => {
-      const pos = model.getAttribute('position');
-      model.setAttribute('position', {
-        x: pos.x + e.deltaX / 20,
-        y: pos.y - e.deltaY / 20,
-        z: pos.z,
-      });
-    });
-
-    console.log("🎮 Gesture controls ready");
-  }
+  console.log("🎮 Gesture controls ready");
+}
 
   function setupMarkerHandlers() {
     const markers = document.querySelectorAll('[mindar-image-target]');
@@ -327,4 +324,5 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
 
