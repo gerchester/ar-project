@@ -169,7 +169,14 @@
     <div class="status" id="status">Point camera at marker</div>
 
    <script>
-function initGestures(model) {
+document.addEventListener('DOMContentLoaded', () => {
+  const status = document.getElementById('status');
+  const scene = document.querySelector('a-scene');
+
+  let detachedModels = [];
+  let hammerManager = null;
+
+  function initGestures(model) {
   const container = document.getElementById('ar-container');
 
   if (hammerManager) hammerManager.destroy();
@@ -178,56 +185,48 @@ function initGestures(model) {
   const pan = new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, pointers: 1 });
   const pinch = new Hammer.Pinch();
   const twoFingerPan = new Hammer.Pan({ event: 'twofingerpan', pointers: 2, threshold: 0 });
-  const rotate = new Hammer.Rotate();
+  const rotate = new Hammer.Rotate(); // ← ADD THIS LINE
 
-  hammerManager.add([pan, pinch, twoFingerPan, rotate]);
-  pinch.recognizeWith([twoFingerPan, rotate]);
-  twoFingerPan.recognizeWith(pinch);
+  hammerManager.add([pan, pinch, twoFingerPan, rotate]); // ← ADD rotate HERE
+  pinch.recognizeWith([twoFingerPan, rotate]); // ← ADD rotate HERE
 
-  let initialScale = 1;
+    twoFingerPan.recognizeWith(pinch);
 
-  // REMOVE THE DUPLICATE PAN HANDLER - KEEP ONLY THIS ONE:
-  hammerManager.on('pan', (e) => {
-    const rotation = model.getAttribute('rotation');
-    
-    // Convert current rotation to radians for math
-    const currentYRot = rotation.y * (Math.PI / 180);
-    
-    // Calculate local rotation deltas
-    const localDeltaX = -e.deltaY * 0.02 * Math.cos(currentYRot) + e.deltaX * 0.02 * Math.sin(currentYRot);
-    const localDeltaY = e.deltaY * 0.02 * Math.sin(currentYRot) + e.deltaX * 0.02 * Math.cos(currentYRot);
-    
-    model.setAttribute('rotation', {
-      x: rotation.x + localDeltaX,
-      y: rotation.y + localDeltaY,
-      z: rotation.z,
+    let initialScale = 1;
+
+    hammerManager.on('pan', (e) => {
+      const rotation = model.getAttribute('rotation');
+      model.setAttribute('rotation', {
+        x: rotation.x + e.deltaY * 0.02,
+        y: rotation.y + e.deltaX * 0.02,
+        z: rotation.z,
+      });
     });
-  });
 
-  hammerManager.on('pinchstart', (e) => (initialScale = e.scale));
+    hammerManager.on('pinchstart', (e) => (initialScale = e.scale));
 
-  hammerManager.on('pinchmove', (e) => {
-    const scale = model.getAttribute('scale');
-    const factor = e.scale / initialScale;
-    model.setAttribute('scale', {
-      x: scale.x * factor,
-      y: scale.y * factor,
-      z: scale.z * factor,
+    hammerManager.on('pinchmove', (e) => {
+      const scale = model.getAttribute('scale');
+      const factor = e.scale / initialScale;
+      model.setAttribute('scale', {
+        x: scale.x * factor,
+        y: scale.y * factor,
+        z: scale.z * factor,
+      });
+      initialScale = e.scale;
     });
-    initialScale = e.scale;
-  });
 
-  hammerManager.on('twofingerpan', (e) => {
-    const pos = model.getAttribute('position');
-    model.setAttribute('position', {
-      x: pos.x + e.deltaX / 20,
-      y: pos.y - e.deltaY / 20,
-      z: pos.z,
+    hammerManager.on('twofingerpan', (e) => {
+      const pos = model.getAttribute('position');
+      model.setAttribute('position', {
+        x: pos.x + e.deltaX / 20,
+        y: pos.y - e.deltaY / 20,
+        z: pos.z,
+      });
     });
-  });
 
-  console.log("🎮 Gesture controls ready");
-}
+    console.log("🎮 Gesture controls ready");
+  }
 
   function setupMarkerHandlers() {
     const markers = document.querySelectorAll('[mindar-image-target]');
@@ -328,7 +327,4 @@ function initGestures(model) {
 </script>
 </body>
 </html>
-
-
-
 
