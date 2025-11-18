@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
     hammerManager.on('pan', (e) => {
       const rotation = model.getAttribute('rotation');
       model.setAttribute('rotation', {
-        x: rotation.x + e.deltaY * 0.02,
+        x: rotation.x - e.deltaY * 0.02,
         y: rotation.y + e.deltaX * 0.02,
         z: rotation.z,
       });
@@ -327,3 +327,4 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
