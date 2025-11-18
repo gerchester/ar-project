@@ -203,17 +203,23 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    hammerManager.on('pinchstart', (e) => (initialScale = e.scale));
-
-    hammerManager.on('pinchmove', (e) => {
-      const scale = model.getAttribute('scale');
-      const factor = e.scale / initialScale;
-      model.setAttribute('scale', {
-        x: scale.x * factor,
-        y: scale.y * factor,
-        z: scale.z * factor,
-      });
-      initialScale = e.scale;
+    hammerManager.on('pan', (e) => {
+  const rotation = model.getAttribute('rotation');
+  
+  // Convert current rotation to radians for math
+  const currentXRot = rotation.x * (Math.PI / 180);
+  const currentYRot = rotation.y * (Math.PI / 180);
+  
+  // Calculate local rotation deltas
+  const localDeltaX = -e.deltaY * 0.02 * Math.cos(currentYRot) + e.deltaX * 0.02 * Math.sin(currentYRot);
+  const localDeltaY = e.deltaY * 0.02 * Math.sin(currentYRot) + e.deltaX * 0.02 * Math.cos(currentYRot);
+  
+  model.setAttribute('rotation', {
+    x: rotation.x + localDeltaX,
+    y: rotation.y + localDeltaY,
+    z: rotation.z,
+  });
+});
     });
 
     hammerManager.on('twofingerpan', (e) => {
@@ -327,5 +333,6 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
 
 
