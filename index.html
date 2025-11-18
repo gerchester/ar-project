@@ -188,27 +188,30 @@ document.addEventListener('DOMContentLoaded', () => {
   const rotate = new Hammer.Rotate();
 
   hammerManager.add([pan, pinch, twoFingerPan, rotate]);
+  
+  // FIX: Add gesture failure requirements to prevent conflicts
+  pan.requireFailure([twoFingerPan, pinch, rotate]);
+  twoFingerPan.requireFailure(pan);
   pinch.recognizeWith([twoFingerPan, rotate]);
-  twoFingerPan.recognizeWith(pinch);
+  twoFingerPan.recognizeWith([pinch, rotate]);
 
   let initialScale = 1;
 
-  // CHANGED: Use object3D for local rotation
-hammerManager.on('pan', (e) => {
-  const object3D = model.object3D;
-  
-  // Create rotation quaternions
-  const quaternionX = new THREE.Quaternion();
-  const quaternionY = new THREE.Quaternion();
-  
-  // Set up rotations
-  quaternionX.setFromAxisAngle(new THREE.Vector3(1, 0, 0), e.deltaY * 0.005);
-  quaternionY.setFromAxisAngle(new THREE.Vector3(0, 1, 0), e.deltaX * 0.005);
-  
-  // Apply rotations in local space
-  object3D.quaternion.multiplyQuaternions(quaternionY, object3D.quaternion);
-  object3D.quaternion.multiplyQuaternions(quaternionX, object3D.quaternion);
-});
+  // SLOW DOWN rotation and fix multiplication order
+  hammerManager.on('pan', (e) => {
+    const object3D = model.object3D;
+    
+    const quaternionX = new THREE.Quaternion();
+    const quaternionY = new THREE.Quaternion();
+    
+    // SLOWER: reduced from 0.005 to 0.0005
+    quaternionX.setFromAxisAngle(new THREE.Vector3(1, 0, 0), e.deltaY * 0.0005);
+    quaternionY.setFromAxisAngle(new THREE.Vector3(0, 1, 0), e.deltaX * 0.0005);
+    
+    // FIXED: Correct multiplication order
+    object3D.quaternion.multiply(quaternionX);
+    object3D.quaternion.multiply(quaternionY);
+  });
 
   hammerManager.on('pinchstart', (e) => (initialScale = e.scale));
 
@@ -334,6 +337,7 @@ hammerManager.on('pan', (e) => {
 </script>
 </body>
 </html>
+
 
 
 
