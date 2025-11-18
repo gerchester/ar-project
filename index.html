@@ -169,6 +169,13 @@
     <div class="status" id="status">Point camera at marker</div>
 
    <script>
+       ocument.addEventListener('DOMContentLoaded', () => {
+  const status = document.getElementById('status');
+  const scene = document.querySelector('a-scene');
+
+  let detachedModels = [];
+  let hammerManager = null;
+           
 function initGestures(model) {
   const container = document.getElementById('ar-container');
 
@@ -358,5 +365,6 @@ function initGestures(model) {
 </script>
 </body>
 </html>
+
 
 
