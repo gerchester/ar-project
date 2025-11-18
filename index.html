@@ -189,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   hammerManager.add([pan, pinch, twoFingerPan, rotate]);
   
-  // FIX: Add gesture failure requirements to prevent conflicts
+  // FROM FIRST VERSION: Gesture conflict prevention
   pan.requireFailure([twoFingerPan, pinch, rotate]);
   twoFingerPan.requireFailure(pan);
   pinch.recognizeWith([twoFingerPan, rotate]);
@@ -197,20 +197,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let initialScale = 1;
 
-  // SLOW DOWN rotation and fix multiplication order
+  // FROM SECOND VERSION: Correct rotation logic with FIRST VERSION speed
   hammerManager.on('pan', (e) => {
     const object3D = model.object3D;
     
     const quaternionX = new THREE.Quaternion();
     const quaternionY = new THREE.Quaternion();
     
-    // SLOWER: reduced from 0.005 to 0.0005
+    // SECOND VERSION rotation direction + FIRST VERSION speed
     quaternionX.setFromAxisAngle(new THREE.Vector3(1, 0, 0), e.deltaY * 0.0005);
     quaternionY.setFromAxisAngle(new THREE.Vector3(0, 1, 0), e.deltaX * 0.0005);
     
-    // FIXED: Correct multiplication order
-    object3D.quaternion.multiply(quaternionX);
-    object3D.quaternion.multiply(quaternionY);
+    // SECOND VERSION multiplication (the one that worked correctly)
+    object3D.quaternion.multiplyQuaternions(quaternionY, object3D.quaternion);
+    object3D.quaternion.multiplyQuaternions(quaternionX, object3D.quaternion);
   });
 
   hammerManager.on('pinchstart', (e) => (initialScale = e.scale));
@@ -337,6 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
 
 
 
