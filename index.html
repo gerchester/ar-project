@@ -194,13 +194,20 @@ document.addEventListener('DOMContentLoaded', () => {
   let initialScale = 1;
 
   // CHANGED: Use object3D for local rotation
- hammerManager.on('pan', (e) => {
-  const rotation = model.getAttribute('rotation');
-  model.setAttribute('rotation', {
-    x: rotation.x - e.deltaY * 0.02,  // CHANGED: minus instead of plus
-    y: rotation.y + e.deltaX * 0.02,
-    z: rotation.z,
-  });
+hammerManager.on('pan', (e) => {
+  const object3D = model.object3D;
+  
+  // Create rotation quaternions
+  const quaternionX = new THREE.Quaternion();
+  const quaternionY = new THREE.Quaternion();
+  
+  // Set up rotations
+  quaternionX.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -e.deltaY * 0.001);
+  quaternionY.setFromAxisAngle(new THREE.Vector3(0, 1, 0), e.deltaX * 0.001);
+  
+  // Apply rotations in local space
+  object3D.quaternion.multiplyQuaternions(quaternionY, object3D.quaternion);
+  object3D.quaternion.multiplyQuaternions(quaternionX, object3D.quaternion);
 });
 
   hammerManager.on('pinchstart', (e) => (initialScale = e.scale));
@@ -327,6 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
 
 
 
