@@ -202,8 +202,8 @@ hammerManager.on('pan', (e) => {
   const quaternionY = new THREE.Quaternion();
   
   // Set up rotations
-  quaternionX.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -e.deltaY * 0.001);
-  quaternionY.setFromAxisAngle(new THREE.Vector3(0, 1, 0), e.deltaX * 0.001);
+  quaternionX.setFromAxisAngle(new THREE.Vector3(1, 0, 0), e.deltaY * 0.005);
+  quaternionY.setFromAxisAngle(new THREE.Vector3(0, 1, 0), e.deltaX * 0.005);
   
   // Apply rotations in local space
   object3D.quaternion.multiplyQuaternions(quaternionY, object3D.quaternion);
@@ -334,6 +334,7 @@ hammerManager.on('pan', (e) => {
 </script>
 </body>
 </html>
+
 
 
 
